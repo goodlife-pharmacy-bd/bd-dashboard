@@ -5,217 +5,238 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Goodlife BD Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --gl:#6B3FA0;--gl-light:#f4f0ff;--gl-mid:#d4b0e8;
-  --green:#2E9E2E;--yellow:#F5A623;--red:#E02020;
+  --gl:#6B3FA0;--gl2:#4a2870;--gll:#f4f0ff;--glm:#d4b0e8;
+  --grn:#2E9E2E;--grn-l:#f0fff0;--grn-b:#b8e4b8;
+  --yel:#E8A000;--yel-l:#fffbf0;--yel-b:#f5dfa0;
+  --red:#E02020;--red-l:#fff4f4;--red-b:#f5b8b8;
   --bg:#f4f1fa;--white:#fff;--text:#2d1b5e;--muted:#888;
-  --radius:10px;--shadow:0 1px 6px rgba(107,63,160,.12);
+  --r:10px;--sh:0 1px 6px rgba(107,63,160,.12);
 }
 html,body{width:100%;overflow-x:hidden;font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text)}
 
-/* ── HEADER ── */
-.header{background:linear-gradient(135deg,#6B3FA0,#3d1f70);color:#fff;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+/* HEADER */
+.header{background:linear-gradient(135deg,#6B3FA0,#3d1f70);color:#fff;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 2px 10px rgba(0,0,0,.25)}
 .hlogo{background:#fff;border-radius:8px;padding:5px 12px;display:flex;align-items:center}
 .hlogo img{height:30px;width:auto}
 .htitle h1{font-size:18px;font-weight:700;text-align:center}
 .htitle p{font-size:10px;opacity:.75;text-align:center;margin-top:2px}
-.hdate{font-size:10px;opacity:.6;text-align:right;min-width:120px}
+.hright{display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:130px}
+.hdate{font-size:10px;opacity:.6}
 
-/* ── ACTION BAR ── */
-.abar{background:#fff;border-bottom:2px solid var(--gl-mid);padding:10px 28px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+/* ACTION BAR */
+.abar{background:#fff;border-bottom:2px solid var(--glm);padding:10px 28px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .abtn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
-.abtn.primary{background:var(--gl);color:#fff}
-.abtn.primary:hover{background:#4a2870}
-.abtn.outline{background:#fff;color:var(--gl);border:2px solid var(--gl)}
-.abtn.outline:hover{background:var(--gl-light)}
-.file-ok{font-size:11px;color:var(--green);font-weight:600;display:none}
-.file-ok.show{display:inline}
-.hint{font-size:10px;color:#bbb;background:#f9f6ff;border:1px solid var(--gl-mid);border-radius:4px;padding:3px 9px}
+.abtn.primary{background:var(--gl);color:#fff}.abtn.primary:hover{background:var(--gl2)}
+.abtn.outline{background:#fff;color:var(--gl);border:2px solid var(--gl)}.abtn.outline:hover{background:var(--gll)}
+.abtn.danger{background:#fff;color:var(--red);border:2px solid var(--red)}.abtn.danger:hover{background:var(--red-l)}
+.file-ok{font-size:11px;color:var(--grn);font-weight:600;display:none}.file-ok.show{display:inline}
+.hint{font-size:10px;color:#bbb;background:#f9f6ff;border:1px solid var(--glm);border-radius:4px;padding:3px 9px}
 .hint b{color:var(--gl)}
 #file-input{display:none}
 
-/* ── COUNTRY TOGGLE ── */
-.country-toggle{display:flex;gap:0;background:#f0e8fb;border-radius:8px;padding:3px;margin-left:auto;flex-shrink:0}
-.ctab{border:none;background:none;border-radius:6px;padding:6px 16px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .2s}
-.ctab.active{background:var(--gl);color:#fff;box-shadow:0 1px 4px rgba(107,63,160,.3)}
+/* FORMAT TRACKER BANNER */
+.fmt-banner{background:linear-gradient(135deg,#f4f0ff,#ede0ff);border-bottom:1px solid var(--glm);padding:10px 28px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.fmt-banner-title{font-size:11px;font-weight:700;color:var(--gl);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
+.fmt-item{display:flex;align-items:center;gap:8px}
+.fmt-pill{font-size:10px;font-weight:700;padding:3px 10px;border-radius:12px;color:#fff}
+.fmt-pill.fl{background:#6B3FA0}.fmt-pill.cl{background:#9b6fd4}.fmt-pill.nb{background:#c9a8f0;color:#2d1b5e}
+.fmt-bar-wrap{display:flex;align-items:center;gap:4px}
+.fmt-seg{display:flex;flex-direction:column;align-items:center;gap:2px}
+.fmt-seg-bar{height:20px;border-radius:3px;min-width:20px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;padding:0 4px}
+.fmt-label{font-size:8px;color:#999}
+.fmt-divider{width:1px;height:28px;background:var(--glm);margin:0 8px}
 
-/* ── STAT CARDS ── */
-.stats{padding:16px 28px 0;display:flex;gap:10px;flex-wrap:wrap}
-.scard{background:#fff;border-radius:var(--radius);padding:12px 16px;flex:1;min-width:110px;box-shadow:var(--shadow);border-top:3px solid var(--gl);position:relative}
-.scard.flagship{border-color:#6B3FA0}
-.scard.classic{border-color:#9b6fd4}
-.scard.neighbourhood{border-color:#c9a8f0}
-.scard.green-card{border-color:var(--green)}
-.scard.yellow-card{border-color:var(--yellow)}
-.scard.red-card{border-color:var(--red)}
+/* STATS */
+.stats{padding:14px 28px 0;display:flex;gap:10px;flex-wrap:wrap}
+.scard{background:#fff;border-radius:var(--r);padding:11px 15px;flex:1;min-width:100px;box-shadow:var(--sh);border-top:3px solid var(--gl);position:relative}
+.scard.fl{border-color:#6B3FA0}.scard.cl{border-color:#9b6fd4}.scard.nb{border-color:#c9a8f0}
+.scard.grn{border-color:var(--grn)}.scard.yel{border-color:var(--yel)}.scard.red{border-color:var(--red)}
 .slbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#bbb;margin-bottom:3px}
-.sval{font-size:22px;font-weight:700;color:var(--text);line-height:1}
+.sval{font-size:20px;font-weight:700;color:var(--text);line-height:1}
 .ssub{font-size:9px;color:#bbb;margin-top:2px}
-.stag{position:absolute;top:8px;right:8px;font-size:8px;font-weight:700;background:var(--gl-light);color:var(--gl);border-radius:3px;padding:1px 5px}
+.stag{position:absolute;top:7px;right:8px;font-size:8px;font-weight:700;background:var(--gll);color:var(--gl);border-radius:3px;padding:1px 5px}
 
-/* ── STATUS FILTER ── */
-.filters{padding:12px 28px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.filters label{font-size:11px;font-weight:600;color:var(--muted)}
-.fbtn{border:none;border-radius:20px;padding:4px 12px;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s;background:#f0e8fb;color:var(--gl)}
-.fbtn:hover{opacity:.8}
-.fbtn.active.all{background:var(--gl);color:#fff}
-.fbtn.active.green{background:var(--green);color:#fff}
-.fbtn.active.yellow{background:var(--yellow);color:#fff}
-.fbtn.active.red{background:var(--red);color:#fff}
-.fbtn.all{border:2px solid var(--gl)}
-.fbtn.green{border:2px solid var(--green)}
-.fbtn.yellow{border:2px solid var(--yellow)}
-.fbtn.red{border:2px solid var(--red)}
-
-/* ── MAP ── */
-.mapsec{padding:16px 28px 28px}
-.mpanel{background:#fff;border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
-.mph{padding:12px 18px;border-bottom:1px solid #f0e8fb;display:flex;align-items:center;justify-content:space-between}
-.mph h3{font-size:13px;font-weight:700;color:var(--gl)}
-.mph p{font-size:9px;color:#bbb;margin-top:1px}
-.mpb{padding:14px 18px}
-.map-wrap{width:100%;max-width:700px;margin:0 auto}
-svg.country-map{width:100%;height:auto;display:block}
-.rshape{cursor:pointer;transition:all .2s}
+/* DUAL MAP LAYOUT */
+.maps-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:14px 28px 28px}
+.map-panel{background:#fff;border-radius:12px;box-shadow:var(--sh);overflow:hidden}
+.map-ph{padding:10px 16px;border-bottom:1px solid #f0e8fb;display:flex;align-items:center;justify-content:space-between}
+.map-ph-left h3{font-size:12px;font-weight:700;color:var(--gl)}
+.map-ph-left p{font-size:9px;color:#bbb;margin-top:1px}
+.country-flag{font-size:18px}
+.map-pb{padding:12px 16px}
+.map-wrap{width:100%;max-width:100%}
+svg.cmap{width:100%;height:auto;display:block}
+.rshape{cursor:pointer;transition:all .18s}
 .rshape:hover{opacity:.78;stroke-width:2.5px!important;stroke:var(--gl)!important}
-.rshape.filtered-out{opacity:.15;pointer-events:none}
+.rshape.dimmed{opacity:.12;pointer-events:none}
 .mlbl{font-family:'Segoe UI',Arial,sans-serif;font-size:9px;font-weight:700;fill:#2d1b5e;pointer-events:none}
-.scale-row{display:flex;align-items:center;gap:7px;margin-top:10px;font-size:10px;color:#bbb}
+.scale-row{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:9px;color:#bbb}
 .sgrad{display:flex;gap:2px}
-.sgrad div{width:16px;height:8px;border-radius:1px}
-.map-hint{font-size:10px;color:#9a82c0;text-align:center;margin-top:6px;font-style:italic}
-.country-map{display:none}
-.country-map.active{display:block}
+.sgrad div{width:14px;height:7px;border-radius:1px}
+.mhint{font-size:9px;color:#9a82c0;text-align:center;margin-top:5px;font-style:italic}
 
-/* ── HOVER TOOLTIP ── */
-#htip{position:fixed;display:none;background:#fff;border-radius:9px;box-shadow:0 4px 18px rgba(0,0,0,.18);z-index:500;min-width:180px;pointer-events:none;border:1px solid #e8dff5;overflow:hidden}
+/* FILTERS */
+.filters{padding:10px 28px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.filters label{font-size:11px;font-weight:600;color:var(--muted);flex-shrink:0}
+.fbtn{border-radius:20px;padding:4px 12px;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s;background:#f0e8fb;color:var(--gl);border:2px solid transparent}
+.fbtn.all{border-color:var(--gl)}.fbtn.grn{border-color:var(--grn);color:var(--grn)}
+.fbtn.yel{border-color:var(--yel);color:var(--yel)}.fbtn.red{border-color:var(--red);color:var(--red)}
+.fbtn.active.all{background:var(--gl);color:#fff}
+.fbtn.active.grn{background:var(--grn);color:#fff;border-color:var(--grn)}
+.fbtn.active.yel{background:var(--yel);color:#fff;border-color:var(--yel)}
+.fbtn.active.red{background:var(--red);color:#fff;border-color:var(--red)}
+
+/* HOVER TIP */
+#htip{position:fixed;display:none;background:#fff;border-radius:9px;box-shadow:0 4px 18px rgba(0,0,0,.18);z-index:500;min-width:190px;pointer-events:none;border:1px solid #e8dff5;overflow:hidden}
 .hth{background:linear-gradient(135deg,#6B3FA0,#4a2870);color:#fff;padding:8px 12px;font-size:11px;font-weight:700}
-.htb{padding:9px 12px;display:flex;flex-direction:column;gap:5px}
-.htr{display:flex;justify-content:space-between;font-size:11px}
-.htc{font-weight:700;font-size:14px}
+.htb{padding:9px 12px;display:flex;flex-direction:column;gap:4px}
+.htr{display:flex;justify-content:space-between;align-items:center;font-size:10px}
+.htv{font-weight:700;font-size:13px}
+.htsize{font-size:9px;color:#bbb;margin-top:1px}
 .htf{border-top:1px solid #f0e8fb;padding-top:5px;font-size:9px;color:#9a82c0;text-align:center}
 
-/* ── MODAL ── */
+/* MODAL */
 .moverlay{display:none;position:fixed;inset:0;background:rgba(30,10,60,.45);z-index:1000;align-items:center;justify-content:center;padding:16px}
 .moverlay.open{display:flex}
-.mdlg{background:#fff;border-radius:14px;width:100%;max-width:560px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.25);overflow:hidden}
+.mdlg{background:#fff;border-radius:14px;width:100%;max-width:580px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.25);overflow:hidden}
 .mhd{background:linear-gradient(135deg,#6B3FA0,#4a2870);color:#fff;padding:13px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .mhd h2{font-size:14px;font-weight:700}
 .mclose{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:2px 6px;border-radius:4px}
 .mclose:hover{background:rgba(255,255,255,.2)}
 .mbody{padding:16px;overflow-y:auto;flex:1}
 
-/* Modal Level 1 - category cards */
-.cat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px}
-.ccard{border-radius:10px;padding:14px 10px;cursor:pointer;border:2px solid transparent;transition:all .2s;text-align:center}
+/* Level 1 — category + area */
+.cat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.ccard{border-radius:10px;padding:12px 10px;cursor:pointer;border:2px solid transparent;transition:all .2s;text-align:center}
 .ccard:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
-.ccard.flagship{background:#f4f0ff;border-color:#c9a8f0}
-.ccard.classic{background:#faf0ff;border-color:#d4b0e8}
-.ccard.neighbourhood{background:#fcf6ff;border-color:#e0d0f8}
-.ccard-icon{font-size:22px;margin-bottom:6px}
-.ccard-name{font-size:11px;font-weight:700;color:var(--text)}
-.ccard-count{font-size:24px;font-weight:700;color:var(--gl);line-height:1.2}
-.ccard-sub{font-size:9px;color:#bbb;margin-top:2px}
-.chint{font-size:9px;color:#c0a8e0;margin-top:5px}
+.ccard.fl{background:#f4f0ff;border-color:#c9a8f0}.ccard.cl{background:#faf0ff;border-color:#d4b0e8}
+.ccard.nb{background:#fcf6ff;border-color:#e0d0f8}
+.ccard-icon{font-size:20px;margin-bottom:5px}.ccard-name{font-size:11px;font-weight:700;color:var(--text)}
+.ccard-count{font-size:22px;font-weight:700;color:var(--gl);line-height:1.2}
+.ccard-sub{font-size:9px;color:#bbb;margin-top:2px}.chint{font-size:9px;color:#c0a8e0;margin-top:4px}
 
-/* Modal Level 2 - store list */
-.l2hd{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #f0e8fb;flex-wrap:wrap}
-.bbtn{background:var(--gl-light);border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;color:var(--gl);cursor:pointer}
-.bbtn:hover{background:var(--gl-mid)}
-.l2title{font-size:13px;font-weight:700;color:var(--text);flex:1}
+/* Area breakdown (Nairobi drill) */
+.area-section{margin-top:14px;border-top:1px solid #f0e8fb;padding-top:12px}
+.area-title{font-size:11px;font-weight:700;color:var(--gl);margin-bottom:8px}
+.area-grid{display:flex;gap:6px;flex-wrap:wrap}
+.area-chip{background:var(--gll);border:1px solid var(--glm);border-radius:20px;padding:4px 10px;font-size:10px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:4px}
+.area-chip:hover{background:var(--glm);color:#fff}
+.area-chip-count{background:var(--gl);color:#fff;border-radius:10px;padding:1px 5px;font-size:8px;font-weight:700}
 
-/* Status filter pills in modal */
+/* Level 2 — store list */
+.l2hd{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f0e8fb;flex-wrap:wrap}
+.bbtn{background:var(--gll);border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;color:var(--gl);cursor:pointer}
+.bbtn:hover{background:var(--glm)}
+.l2title{font-size:12px;font-weight:700;color:var(--text);flex:1}
 .spills{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap}
 .spill{border:none;border-radius:20px;padding:3px 10px;font-size:9px;font-weight:700;cursor:pointer;transition:all .15s;background:#f0e8fb;color:var(--gl)}
-.spill.active.all{background:var(--gl);color:#fff}
-.spill.active.green{background:var(--green);color:#fff}
-.spill.active.yellow{background:var(--yellow);color:#fff}
-.spill.active.red{background:var(--red);color:#fff}
-
-/* Store cards */
+.spill.active.all{background:var(--gl);color:#fff}.spill.active.grn{background:var(--grn);color:#fff}
+.spill.active.yel{background:var(--yel);color:#fff}.spill.active.red{background:var(--red);color:#fff}
 .slist{display:flex;flex-direction:column;gap:7px}
-.sc{background:#f9f7ff;border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px;border:1px solid #ede5fb;transition:background .15s}
-.sc.green-sc{background:#f4fff4;border-color:#b8e4b8}
-.sc.red-sc{background:#fff4f4;border-color:#f5b8b8}
-.sc.yellow-sc{background:#fffbf0;border-color:#f5dfa0}
+.sc{background:#f9f7ff;border-radius:8px;padding:10px 12px;display:flex;align-items:flex-start;gap:8px;border:1px solid #ede5fb}
+.sc.grn-sc{background:var(--grn-l);border-color:var(--grn-b)}
+.sc.red-sc{background:var(--red-l);border-color:var(--red-b)}
+.sc.yel-sc{background:var(--yel-l);border-color:var(--yel-b)}
 .sc-info{flex:1;min-width:0}
 .sc-name{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sc-meta{font-size:10px;color:#bbb;margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sc-meta{font-size:10px;color:#bbb;margin-top:2px;display:flex;gap:5px;align-items:center;flex-wrap:wrap}
 .badge{display:inline-block;border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700}
-.badge.fl{background:var(--gl);color:#fff}
-.badge.cl{background:#9b6fd4;color:#fff}
+.badge.fl{background:var(--gl);color:#fff}.badge.cl{background:#9b6fd4;color:#fff}
 .badge.nb{background:#c9a8f0;color:#2d1b5e}
-.badge.green{background:var(--green);color:#fff}
-.badge.yellow{background:var(--yellow);color:#fff}
-.badge.red{background:var(--red);color:#fff}
-.mapbtn{flex-shrink:0;color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px;background:var(--gl)}
-.mapbtn:hover{background:#4a2870}
+.badge.grn{background:var(--grn);color:#fff}.badge.yel{background:var(--yel);color:#fff}.badge.red{background:var(--red);color:#fff}
+.sc-size{margin-top:5px}
+.size-label{font-size:8px;color:#bbb;margin-bottom:2px}
+.size-track{height:4px;background:#e8dff5;border-radius:2px;width:100%;max-width:200px}
+.size-fill{height:4px;border-radius:2px;background:var(--gl)}
+.size-text{font-size:8px;color:#9a82c0;margin-top:1px}
+.mapbtn{flex-shrink:0;color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px;background:var(--gl);margin-top:2px}
+.mapbtn:hover{background:var(--gl2)}
 .empty{text-align:center;color:#bbb;font-size:12px;padding:24px 0}
 
-/* Size indicator bar */
-.size-bar{height:3px;border-radius:2px;background:var(--gl-mid);margin-top:4px;position:relative}
-.size-fill{height:3px;border-radius:2px;background:var(--gl);position:absolute;left:0;top:0}
-
-@media(max-width:700px){
-  .stats,.mapsec,.filters{padding-left:14px;padding-right:14px}
+@media(max-width:900px){
+  .maps-layout{grid-template-columns:1fr}
+  .stats,.filters,.maps-layout,.fmt-banner{padding-left:14px;padding-right:14px}
   .header,.abar{padding-left:14px;padding-right:14px}
   .header{flex-direction:column;gap:8px}
   .cat-cards{grid-template-columns:1fr 1fr}
-  .country-toggle{margin-left:0}
 }
 </style>
 </head>
 <body>
 
+<!-- HEADER -->
 <div class="header">
   <div class="hlogo"><img id="gllogo" alt="Goodlife" src="data:image/png;base64,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"></div>
   <div class="htitle">
     <h1>Goodlife BD Intelligence Dashboard</h1>
-    <p>Mall location mapping · Kenya &amp; Uganda · Source: Market_Share_Malls_v2.xlsx</p>
+    <p>Mall location mapping · Kenya &amp; Uganda · Powered by Market_Share_Malls_v2.xlsx</p>
   </div>
-  <div class="hdate" id="hdate"></div>
+  <div class="hright">
+    <div class="hdate" id="hdate"></div>
+  </div>
 </div>
 
+<!-- ACTION BAR -->
 <div class="abar">
   <span style="font-size:12px;font-weight:600;color:var(--gl)">📂 Data:</span>
   <button class="abtn primary" onclick="document.getElementById('file-input').click()">↑ Upload Excel</button>
   <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
-  <button class="abtn outline" onclick="downloadReport()">↓ Download Report</button>
+  <button class="abtn outline" onclick="downloadHTML()">↓ Download Report</button>
+  <button class="abtn danger" onclick="exportPDF()">📄 Export PDF</button>
   <span class="file-ok" id="file-ok">✓ <span id="fname"></span></span>
   <span class="hint">Upload <b>Market_Share_Malls_v2.xlsx</b> · Sheets: <b>Flagships</b> · <b>Classics</b> · <b>Neigbourhoods</b> · <b>Uganda</b></span>
-  <div class="country-toggle">
-    <button class="ctab active" data-c="kenya" onclick="switchCountry('kenya',this)">🇰🇪 Kenya</button>
-    <button class="ctab" data-c="uganda" onclick="switchCountry('uganda',this)">🇺🇬 Uganda</button>
-  </div>
 </div>
 
-<!-- Stats -->
-<div class="stats" id="stats-row"></div>
+<!-- GOODLIFE FORMAT DEPLOYMENT TRACKER -->
+<div class="fmt-banner" id="fmt-banner">
+  <span class="fmt-banner-title">📊 Goodlife Format Mix</span>
+  <div class="fmt-item">
+    <span class="fmt-pill fl">Flagship Format</span>
+    <div class="fmt-bar-wrap" id="fmt-fl-bars"></div>
+  </div>
+  <div class="fmt-divider"></div>
+  <div class="fmt-item">
+    <span class="fmt-pill cl">Classic Format</span>
+    <div class="fmt-bar-wrap" id="fmt-cl-bars"></div>
+  </div>
+  <div class="fmt-divider"></div>
+  <div class="fmt-item">
+    <span class="fmt-pill nb">Neighbourhood Format</span>
+    <div class="fmt-bar-wrap" id="fmt-nb-bars"></div>
+  </div>
+  <span style="font-size:10px;color:#bbb;margin-left:auto">Goodlife stores only · Kenya</span>
+</div>
 
-<!-- Status Filter -->
+<!-- STATUS FILTER -->
 <div class="filters">
   <label>Filter by Status:</label>
-  <button class="fbtn all active" onclick="setFilter('All',this)">All</button>
-  <button class="fbtn green" onclick="setFilter('Green',this)">🟢 Goodlife Present</button>
-  <button class="fbtn yellow" onclick="setFilter('Yellow',this)">🟡 Opportunity / Shared</button>
-  <button class="fbtn red" onclick="setFilter('Red',this)">🔴 Competitor</button>
+  <button class="fbtn all active" onclick="setFilter('All',this)">All Malls</button>
+  <button class="fbtn grn" onclick="setFilter('Green',this)">🟢 Goodlife Present</button>
+  <button class="fbtn yel" onclick="setFilter('Yellow',this)">🟡 Opportunity / Shared</button>
+  <button class="fbtn red" onclick="setFilter('Red',this)">🔴 Competitor Dominated</button>
 </div>
 
-<!-- Map -->
-<div class="mapsec">
-  <div class="mpanel">
-    <div class="mph">
-      <div>
-        <h3 id="maptitle">🗺 Kenya — 8 Provinces</h3>
-        <p>Hover to preview · Click a region to drill into pharmacy locations</p>
+<!-- STATS -->
+<div class="stats" id="stats-row"></div>
+
+<!-- DUAL MAP LAYOUT -->
+<div class="maps-layout" id="printable">
+
+  <!-- KENYA -->
+  <div class="map-panel">
+    <div class="map-ph">
+      <div class="map-ph-left">
+        <h3>🇰🇪 Kenya — 8 Provinces</h3>
+        <p>Hover to preview · Click to drill into locations by category &amp; area</p>
       </div>
     </div>
-    <div class="mpb">
-      <!-- Kenya Map -->
+    <div class="map-pb">
       <div class="map-wrap">
-        <svg id="ke-map" class="country-map active" viewBox="0 0 650 600" xmlns="http://www.w3.org/2000/svg">
+        <svg class="cmap" viewBox="0 0 650 600" xmlns="http://www.w3.org/2000/svg">
           <polygon class="rshape" data-region="Rift Valley" data-country="kenya" points="318.8,503.7 316.5,498.0 312.8,493.8 307.8,490.8 302.8,487.8 297.9,484.8 292.9,481.8 288.1,478.6 282.9,475.9 278.2,472.6 273.0,469.9 268.0,466.9 263.0,463.9 258.0,460.9 253.0,458.0 248.0,455.0 243.1,452.0 237.8,449.3 232.9,446.3 227.9,443.3 223.9,440.3 219.7,438.6 215.9,436.3 211.7,433.6 207.2,431.1 202.7,428.6 197.7,425.6 192.8,422.6 188.5,419.9 183.3,417.2 178.3,414.2 173.3,411.2 168.4,408.2 163.1,405.5 158.1,402.5 152.9,399.8 147.9,396.8 143.0,393.8 140.7,388.1 138.5,382.3 136.2,376.6 137.0,372.4 143.0,371.4 148.9,369.4 155.2,367.7 159.1,364.7 162.9,360.4 162.1,354.7 163.1,347.8 162.6,341.3 160.4,336.1 164.1,331.8 164.4,328.1 169.1,325.4 173.1,329.4 177.1,327.9 174.6,322.4 171.3,317.7 166.4,315.7 160.4,316.7 153.4,316.7 149.9,314.7 153.4,310.2 156.9,305.7 157.9,300.2 157.6,295.5 156.1,289.1 155.9,282.8 159.9,278.9 164.9,277.9 168.4,273.4 169.6,268.7 167.1,263.2 160.9,261.4 155.4,261.9 148.9,262.4 146.2,257.2 141.5,254.0 137.5,250.0 139.5,246.5 144.4,243.5 149.2,240.3 147.7,234.8 151.7,230.8 153.9,225.1 157.6,220.9 159.6,214.9 159.6,207.0 159.9,200.7 158.1,195.5 157.4,189.3 154.9,183.8 152.7,178.1 155.9,173.4 154.7,168.2 151.7,163.7 148.7,159.2 147.2,152.7 145.2,147.8 140.5,147.5 136.7,143.3 135.7,136.3 132.0,132.1 128.8,129.4 128.5,122.1 126.0,117.7 127.0,112.7 129.3,107.0 128.0,101.2 123.5,97.8 118.8,96.5 115.6,92.3 112.6,89.8 110.6,86.3 107.3,82.1 107.6,76.9 105.3,71.1 109.1,66.9 113.3,63.2 117.3,59.2 121.3,55.2 125.3,51.2 129.5,47.5 133.5,43.5 137.5,39.6 141.7,35.8 145.7,31.8 149.7,27.9 153.9,24.1 157.9,20.1 164.9,20.1 172.8,20.1 180.8,20.1 188.8,20.1 196.7,20.1 202.5,21.4 203.7,26.6 200.5,30.3 201.0,37.8 203.5,43.3 208.0,46.8 212.4,50.2 216.9,53.7 218.9,59.7 219.4,67.2 219.9,74.6 220.4,82.1 220.9,89.6 217.9,94.5 220.9,99.5 221.4,106.0 223.9,111.4 228.4,114.9 226.9,120.4 227.4,127.9 231.6,131.6 236.6,133.6 241.3,135.8 244.3,139.8 247.8,143.3 248.8,148.3 252.0,153.0 253.5,159.5 257.5,162.4 265.0,161.9 268.2,165.7 269.7,172.1 272.5,177.4 275.2,182.6 277.2,188.6 281.9,191.8 287.6,194.0 292.4,197.3 295.6,202.0 298.6,207.0 301.6,211.9 304.8,216.7 308.1,221.4 310.6,226.9 314.8,229.6 321.5,228.4 328.2,227.1 332.5,230.8 333.7,237.6 335.7,243.5 338.9,248.3 339.4,255.7 339.9,263.2 339.4,268.7 333.7,270.9 328.2,273.4 321.8,274.9 316.3,277.4 311.3,280.3 305.1,278.6 299.3,277.4 295.1,277.1 295.1,282.1 297.6,287.6 298.9,292.3 298.6,298.5 295.9,303.7 292.4,307.2 287.4,310.2 281.4,312.2 278.4,317.2 278.2,322.9 276.4,328.1 271.2,327.4 270.0,322.6 266.0,319.7 260.5,322.1 255.3,320.4 253.5,315.7 255.5,311.2 251.0,308.7 246.3,306.0 241.1,308.7 237.6,312.2 233.4,315.9 232.4,322.9 231.1,329.1 233.4,334.8 238.1,338.1 240.8,342.3 242.8,347.3 246.1,352.0 247.3,357.7 248.3,363.7 249.8,370.1 250.8,377.1 247.8,381.1 250.3,386.6 254.5,390.3 258.8,394.0 257.0,399.3 254.3,404.5 255.0,406.7 257.3,402.0 260.2,397.0 263.7,392.5 268.5,394.3 270.7,398.0 274.7,402.0 277.7,407.0 274.2,411.4 271.0,412.2 266.0,413.7 266.5,420.1 272.2,420.9 273.9,414.7 275.2,416.4 277.7,421.4 282.9,421.6 287.1,425.4 290.4,430.1 295.4,433.1 301.3,435.1 305.8,438.6 310.8,441.5 316.3,444.0 316.0,449.3 312.0,453.2 315.0,458.2 318.8,462.4 322.3,466.9 325.5,471.6 328.5,476.6 329.2,482.3 327.5,488.6 325.5,494.5 324.5,500.5 319.3,503.2" fill="#d8ccea" stroke="white" stroke-width="1.2" stroke-linejoin="round"/>
 <polygon class="rshape" data-region="Eastern" data-country="kenya" points="385.0,493.3 378.0,492.3 371.6,490.8 366.8,488.1 360.9,487.6 356.9,483.6 352.9,479.6 347.7,476.9 343.2,474.4 337.7,476.9 332.2,479.4 329.5,475.1 326.5,470.1 323.3,465.4 319.8,460.9 316.0,456.7 314.5,452.2 318.0,447.8 319.8,443.0 313.5,441.3 308.6,438.3 303.8,435.1 298.9,432.1 293.1,429.9 289.1,425.9 288.6,420.4 288.6,412.4 285.9,407.2 282.4,410.7 278.9,406.2 276.2,401.0 272.5,396.8 273.7,391.5 279.2,389.6 283.7,386.6 287.4,382.3 289.9,377.9 296.9,377.9 300.8,373.9 300.8,369.4 296.4,366.9 293.6,362.7 297.4,361.4 303.1,362.2 308.1,359.2 307.6,351.7 305.1,346.3 304.1,339.3 301.8,333.6 299.3,328.1 297.1,322.4 292.4,319.2 287.9,315.7 286.1,312.4 291.6,310.0 295.9,306.2 299.1,301.5 301.1,295.5 298.9,290.8 298.6,285.1 295.6,280.1 299.3,278.9 304.3,280.8 310.3,281.8 316.0,279.6 320.8,276.4 327.7,275.4 333.5,273.1 338.9,270.6 342.4,266.2 341.2,259.5 340.4,252.2 339.4,245.3 335.7,241.0 335.0,233.8 332.5,228.4 328.0,225.4 321.3,226.6 314.8,228.1 311.1,223.9 308.6,218.4 304.6,214.4 302.6,208.5 298.6,204.5 295.9,199.3 292.1,195.0 287.1,192.0 281.4,189.8 277.9,185.3 275.9,179.4 272.2,175.1 270.7,168.7 268.7,162.7 264.0,160.4 257.5,160.9 255.0,155.5 252.5,150.0 249.3,145.3 246.8,139.8 243.6,135.1 238.6,132.1 234.1,129.6 228.9,126.9 228.9,119.9 229.9,113.9 225.4,110.4 222.9,105.0 222.1,98.8 220.4,94.5 222.4,88.6 222.4,80.6 221.9,73.1 220.9,66.2 220.4,58.7 226.6,57.0 234.6,57.0 242.1,57.5 249.0,58.5 256.0,58.5 264.0,58.5 272.0,58.5 278.4,60.0 283.9,62.4 288.1,66.2 293.1,69.2 298.1,72.1 303.1,75.1 308.1,78.1 313.0,81.1 318.0,84.1 322.8,87.3 327.7,90.3 332.7,93.3 337.7,96.3 341.7,100.2 345.7,104.2 352.6,104.2 359.4,104.5 365.8,104.5 370.1,103.7 376.3,105.0 380.0,107.7 386.5,109.2 393.2,110.4 401.0,110.7 406.9,111.7 412.9,112.7 410.7,117.9 412.2,124.4 413.2,131.3 412.7,137.8 407.9,141.0 402.5,143.5 400.7,149.8 398.2,155.2 396.2,161.2 392.5,165.4 389.3,170.1 390.5,176.9 391.7,183.6 392.2,191.0 394.7,196.5 397.7,201.5 401.7,205.5 404.7,210.4 407.7,215.4 412.7,218.4 417.4,221.6 418.1,225.9 413.4,229.1 412.7,234.3 414.7,240.3 416.6,246.3 418.9,252.0 418.4,257.0 413.2,259.7 410.2,264.7 406.9,269.4 403.4,273.9 397.5,275.9 391.7,278.1 386.3,280.6 382.0,284.3 376.6,286.8 377.3,293.5 378.3,300.5 377.3,306.5 376.8,313.9 373.6,317.7 367.1,317.2 359.6,317.7 354.9,315.9 357.6,321.1 360.4,326.4 363.4,331.3 366.1,336.6 368.8,341.8 371.6,347.0 374.3,352.2 377.0,357.5 379.8,362.7 382.5,367.9 385.3,373.1 387.8,378.6 389.8,384.6 390.2,392.0 391.0,399.3 391.7,406.5 392.2,413.9 389.8,419.4 390.2,426.9 389.3,432.8 386.3,437.8 383.5,443.0 381.0,448.5 377.5,453.0 373.1,456.5 373.8,461.2 377.0,465.9 380.3,470.6 383.5,475.4 386.8,480.1 389.8,485.1 392.2,490.5 387.0,492.3 385.5,492.8" fill="#d8ccea" stroke="white" stroke-width="1.2" stroke-linejoin="round"/>
 <polygon class="rshape" data-region="North Eastern" data-country="kenya" points="463.2,435.6 461.5,429.4 460.7,423.1 458.5,417.4 458.0,410.9 456.0,405.0 454.3,398.8 452.0,393.0 450.5,386.6 449.0,380.1 446.0,375.1 444.5,368.7 442.0,363.2 441.1,357.2 438.3,352.0 432.8,349.5 430.6,343.8 428.1,338.3 424.4,334.1 419.4,331.1 414.4,328.1 408.9,325.6 402.2,324.4 398.0,320.6 391.0,320.6 385.5,321.1 379.5,320.1 378.3,314.4 379.3,307.5 379.8,301.0 379.3,294.5 378.3,287.6 384.0,285.3 388.0,281.3 393.7,279.1 399.7,277.1 405.4,274.9 408.7,270.1 411.7,265.2 414.9,260.4 420.4,258.0 421.1,252.7 418.9,247.0 416.6,241.3 414.7,235.3 414.9,229.6 419.9,226.6 419.9,222.1 415.9,218.2 410.4,215.7 407.2,210.9 404.2,206.0 400.5,201.7 397.0,197.3 394.5,191.8 394.0,185.3 392.7,178.6 391.5,171.9 393.0,166.9 397.2,163.2 399.5,157.5 401.5,151.5 403.0,145.0 408.4,142.5 413.2,139.3 414.7,133.8 414.2,126.4 412.7,119.9 414.4,114.7 418.4,113.7 423.4,116.7 428.1,115.4 430.3,109.7 434.3,105.7 438.3,101.7 440.6,96.0 442.5,90.0 446.8,86.3 452.3,83.8 458.0,81.6 463.7,79.4 469.2,76.9 474.9,74.6 480.7,72.4 486.1,69.9 491.9,67.7 498.1,65.9 502.3,69.7 506.6,73.4 510.3,76.6 514.0,80.8 518.8,84.1 526.0,84.8 533.4,84.3 539.9,82.8 546.9,82.8 552.9,82.8 557.6,84.1 554.6,89.1 551.4,93.8 548.1,98.5 545.2,103.5 541.9,108.2 538.7,112.9 535.7,117.9 532.5,122.6 529.2,127.4 525.2,131.3 521.2,135.3 517.3,139.3 513.3,143.3 509.3,147.3 507.8,153.7 507.8,161.7 507.8,169.7 507.8,177.6 507.8,185.6 507.8,193.5 507.8,201.5 507.8,209.5 507.8,217.4 507.8,225.4 507.8,233.3 507.8,241.3 507.8,249.3 507.8,257.2 507.8,265.2 507.8,273.1 507.8,281.1 507.8,289.1 507.8,297.0 507.8,305.0 507.8,312.9 507.8,320.9 507.8,328.9 507.8,336.8 507.8,344.8 507.8,352.7 507.8,360.7 509.5,366.9 513.3,371.1 516.8,375.6 520.2,380.1 523.7,384.6 527.2,389.1 530.7,393.5 533.9,398.3 536.4,401.7 539.7,406.5 538.9,411.7 532.0,412.7 524.0,412.7 516.0,412.7 509.0,413.7 503.6,416.2 498.3,418.9 492.9,421.4 487.6,424.1 482.1,426.6 476.7,429.1 471.2,431.6 465.7,434.1" fill="#d8ccea" stroke="white" stroke-width="1.2" stroke-linejoin="round"/>
@@ -235,40 +256,9 @@ svg.country-map{width:100%;height:auto;display:block}
 <text class="mlbl" x="104" y="295" text-anchor="middle" dominant-baseline="middle">Western</text>
 <text class="mlbl" x="255" y="400" text-anchor="middle" dominant-baseline="middle">Nairobi</text>
         </svg>
-        <svg id="ug-map" class="country-map" viewBox="0 0 685 661" xmlns="http://www.w3.org/2000/svg">
-          <path d="M 517 21 L 461 73 L 428 70 L 407 58 L 378 71 L 341 74 L 316 99 L 290 91 L 275 65 L 245 84 L 217 69 L 178 82 L 169 96 L 177 112 L 158 151 L 171 178 L 154 214 L 170 230 L 187 226 L 218 254 L 124 357 L 99 364 L 89 391 L 70 397 L 69 435 L 40 486 L 26 592 L 28 646 L 53 638 L 64 656 L 89 643 L 112 610 L 144 610 L 158 601 L 270 603 L 270 591 L 262 591 L 270 561 L 298 528 L 291 515 L 284 521 L 286 510 L 303 506 L 301 499 L 324 500 L 325 490 L 336 497 L 336 485 L 343 492 L 359 486 L 365 470 L 377 476 L 370 485 L 394 474 L 399 488 L 436 453 L 435 442 L 441 448 L 449 442 L 441 454 L 459 456 L 463 463 L 454 468 L 467 482 L 473 461 L 487 460 L 483 472 L 496 478 L 490 485 L 505 486 L 498 478 L 523 462 L 532 429 L 569 393 L 574 373 L 608 354 L 605 335 L 623 317 L 632 283 L 623 214 L 568 136 L 562 104 L 569 83 L 537 70 L 540 59 L 527 60 L 532 50" fill="#e8dff5" stroke="#9a82c0" stroke-width="1.5"/>
-<path class="rshape" data-region="Northern" data-country="uganda" d="M 632 281 L 623 316 L 604 336 L 592 322 L 574 315 L 545 323 L 539 260 L 482 227 L 465 232 L 464 240 L 457 242 L 457 254 L 449 256 L 437 276 L 422 285 L 417 300 L 404 306 L 402 330 L 360 329 L 339 312 L 310 305 L 333 282 L 327 244 L 310 243 L 277 227 L 262 236 L 227 235 L 214 250 L 188 226 L 180 223 L 172 230 L 156 219 L 156 204 L 171 179 L 168 162 L 159 153 L 166 128 L 177 113 L 177 102 L 169 97 L 180 81 L 209 69 L 245 85 L 275 66 L 286 78 L 289 91 L 301 91 L 314 100 L 319 89 L 342 74 L 380 71 L 407 58 L 426 70 L 462 73 L 517 22 L 531 50 L 526 60 L 540 60 L 536 70 L 568 83 L 568 99 L 561 110 L 568 137 L 581 147 L 583 166 L 600 175 L 604 192 L 619 206" fill="#b8d494" fill-opacity="0.75" stroke="white" stroke-width="2" stroke-linejoin="round"/>
-<path class="rshape" data-region="Eastern" data-country="uganda" d="M 483 227 L 490 229 L 538 260 L 542 274 L 540 305 L 544 313 L 542 321 L 544 323 L 555 324 L 575 316 L 581 321 L 591 322 L 597 334 L 605 337 L 610 344 L 607 354 L 591 357 L 574 372 L 572 388 L 562 401 L 552 408 L 549 417 L 532 428 L 528 441 L 529 451 L 523 461 L 508 474 L 499 475 L 497 479 L 495 469 L 491 475 L 484 472 L 486 464 L 490 461 L 488 459 L 479 463 L 474 459 L 475 471 L 471 475 L 463 476 L 454 467 L 456 464 L 464 465 L 458 459 L 460 456 L 458 454 L 451 459 L 443 454 L 450 441 L 442 447 L 438 442 L 434 442 L 431 448 L 417 429 L 411 397 L 399 383 L 399 352 L 390 339 L 392 329 L 404 329 L 404 307 L 417 301 L 421 295 L 422 286 L 435 279 L 445 262 L 452 255 L 455 257 L 458 254 L 458 243 L 465 240 L 466 232 L 474 232" fill="#f5e88a" fill-opacity="0.75" stroke="white" stroke-width="2" stroke-linejoin="round"/>
-<path class="rshape" data-region="Western" data-country="uganda" d="M 327 245 L 332 282 L 310 299 L 306 319 L 273 346 L 239 343 L 221 357 L 225 364 L 232 363 L 243 373 L 236 386 L 237 396 L 229 412 L 219 411 L 211 419 L 212 434 L 201 440 L 199 454 L 187 469 L 192 496 L 198 503 L 191 521 L 199 541 L 195 567 L 207 583 L 210 602 L 157 601 L 143 610 L 111 610 L 110 617 L 91 634 L 88 643 L 65 655 L 60 653 L 54 638 L 50 643 L 41 641 L 29 645 L 26 596 L 32 590 L 30 570 L 36 555 L 32 540 L 42 498 L 41 484 L 52 471 L 58 449 L 69 435 L 70 398 L 89 392 L 97 380 L 101 363 L 125 357 L 154 321 L 187 296 L 217 257 L 216 250 L 227 236 L 259 237 L 279 227 L 308 243" fill="#f5b8c8" fill-opacity="0.75" stroke="white" stroke-width="2" stroke-linejoin="round"/>
-<path class="rshape" data-region="Central" data-country="uganda" d="M 388 330 L 399 354 L 398 383 L 411 399 L 417 431 L 427 442 L 427 449 L 435 453 L 423 460 L 420 471 L 414 467 L 412 470 L 416 475 L 400 487 L 394 485 L 395 474 L 388 480 L 370 484 L 377 475 L 368 476 L 371 472 L 367 469 L 368 462 L 364 471 L 358 473 L 358 486 L 343 491 L 346 482 L 335 485 L 335 494 L 324 490 L 327 496 L 324 499 L 318 494 L 315 504 L 300 499 L 296 502 L 302 506 L 286 509 L 282 495 L 268 486 L 248 488 L 251 491 L 269 490 L 282 503 L 286 513 L 284 522 L 291 516 L 298 527 L 270 560 L 273 567 L 261 589 L 269 592 L 268 603 L 212 603 L 207 581 L 196 568 L 200 544 L 192 519 L 198 502 L 192 495 L 187 470 L 199 456 L 201 441 L 213 433 L 211 420 L 218 412 L 231 411 L 237 397 L 237 385 L 244 375 L 235 364 L 225 363 L 222 357 L 240 343 L 261 347 L 280 343 L 307 319 L 310 306 L 338 312 L 361 330" fill="#d4b0e8" fill-opacity="0.75" stroke="white" stroke-width="2" stroke-linejoin="round"/>
-<path d="M 352 540 L 353 541 L 353 542 L 352 543 L 352 544 L 351 545 L 351 548 L 348 551 L 346 551 L 345 550 L 345 549 L 346 548 L 347 548 L 347 547 L 348 546 L 348 544 L 347 543 L 347 542 L 348 541 L 349 541 L 350 540" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 353 533 L 351 535 L 351 538 L 348 541 L 347 541 L 346 542 L 345 542 L 345 543 L 346 543 L 348 545 L 347 546 L 347 547 L 346 548 L 345 548 L 344 549 L 344 551 L 345 551 L 346 552 L 347 552 L 348 551 L 349 551 L 351 549 L 351 548 L 352 547 L 352 544 L 354 542 L 354 541 L 353 540 L 354 539 L 356 539 L 357 538 L 357 536 L 355 536 L 354 535 L 354 534" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 364 530 L 363 529 L 362 530 L 357 530 L 357 532 L 358 533 L 359 533 L 360 534 L 362 534 L 364 532" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 303 520 L 305 520 L 306 521 L 308 521 L 309 520 L 310 520 L 312 522 L 314 522 L 315 523 L 313 526 L 313 529 L 314 530 L 315 530 L 316 529 L 319 529 L 320 528 L 322 528 L 323 529 L 323 530 L 324 530 L 325 529 L 328 529 L 330 531 L 329 532 L 327 532 L 325 535 L 325 539 L 326 540 L 326 542 L 325 543 L 325 544 L 326 545 L 326 546 L 323 549 L 321 546 L 320 546 L 319 547 L 318 547 L 318 550 L 317 551 L 316 551 L 314 553 L 314 554 L 312 556 L 311 556 L 310 555 L 310 551 L 313 548 L 313 544 L 314 543 L 315 543 L 316 542 L 317 542 L 319 539 L 321 539 L 322 538 L 322 537 L 321 537 L 320 536 L 320 534 L 319 533 L 319 532 L 316 532 L 315 533 L 312 533 L 311 532 L 307 532 L 306 531 L 306 527 L 305 526 L 305 525 L 301 525 L 300 524 L 302 522 L 302 521" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 301 519 L 302 521 L 300 523 L 300 525 L 301 526 L 304 526 L 306 528 L 306 532 L 310 532 L 314 534 L 317 532 L 319 534 L 319 536 L 320 537 L 316 542 L 313 543 L 313 547 L 310 550 L 310 556 L 311 557 L 312 557 L 314 555 L 314 554 L 318 551 L 318 548 L 319 547 L 321 547 L 323 550 L 324 550 L 324 549 L 327 547 L 326 545 L 326 541 L 327 540 L 333 543 L 332 545 L 330 545 L 329 546 L 329 548 L 327 550 L 327 554 L 329 556 L 330 556 L 331 550 L 334 547 L 335 543 L 339 541 L 339 538 L 341 536 L 342 538 L 347 538 L 347 537 L 349 535 L 348 533 L 345 533 L 342 536 L 341 536 L 339 532 L 336 532 L 335 533 L 336 535 L 336 538 L 333 540 L 330 536 L 326 534 L 328 532 L 331 532 L 331 531 L 328 528 L 326 528 L 325 529 L 323 528 L 314 529 L 313 528 L 314 525 L 318 521 L 317 520 L 313 522 L 311 520 L 308 520 L 307 521 L 306 520" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 323 514 L 323 517 L 326 517 L 327 516 L 330 519 L 330 520 L 329 521 L 329 522 L 330 522 L 331 523 L 332 523 L 335 526 L 336 526 L 337 525 L 337 523 L 336 522 L 335 522 L 334 521 L 332 521 L 331 520 L 332 519 L 332 517 L 330 515 L 329 515 L 328 516 L 326 514" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 483 506 L 485 506 L 488 509 L 488 512 L 486 514 L 485 514 L 484 513 L 483 513 L 482 512 L 482 511 L 480 509" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 482 506 L 480 508 L 480 510 L 484 514 L 487 514 L 488 513 L 488 508 L 486 506" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 371 507 L 373 505 L 375 505 L 375 504 L 376 503 L 376 499 L 377 498 L 378 498 L 379 499 L 379 500 L 380 501 L 380 504 L 381 505 L 382 505 L 382 504 L 384 502 L 386 504 L 386 506 L 384 508 L 383 508 L 382 509 L 381 509 L 380 510 L 379 510 L 378 509 L 378 508 L 377 509 L 376 509 L 375 510 L 374 509 L 373 509" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 385 491 L 386 492 L 386 493 L 385 494 L 385 496 L 383 498 L 381 498 L 380 499 L 379 498 L 379 497 L 378 496 L 379 495 L 380 495 L 380 494 L 381 493 L 381 492 L 382 491 L 383 492 L 384 491" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 385 490 L 384 490 L 383 491 L 381 491 L 380 492 L 380 493 L 379 494 L 378 494 L 377 495 L 378 496 L 378 497 L 377 498 L 376 498 L 376 501 L 374 503 L 374 504 L 373 505 L 372 505 L 371 506 L 371 508 L 373 510 L 382 510 L 386 506 L 386 503 L 385 502 L 383 502 L 381 504 L 380 503 L 380 501 L 383 498 L 384 498 L 385 497 L 385 496 L 386 495 L 386 491" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 437 488 L 438 489 L 438 491 L 434 495 L 433 494 L 433 493 L 432 492 L 432 491 L 435 488" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 267 488 L 268 487 L 270 487 L 271 488 L 272 488 L 273 489 L 274 489 L 276 491 L 277 491 L 282 496 L 282 497 L 283 498 L 283 500 L 282 501 L 280 499 L 279 499 L 277 497 L 276 497 L 272 493 L 272 492 L 270 490 L 269 490" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 438 488 L 437 488 L 436 487 L 435 487 L 432 490 L 432 493 L 433 494 L 433 495 L 435 495 L 438 492 L 438 491 L 439 490 L 438 489" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 490 483 L 493 480 L 495 480 L 496 481 L 497 481 L 498 482 L 498 483 L 499 484 L 503 484 L 504 485 L 504 486 L 503 487 L 502 486 L 499 486 L 498 487 L 497 487 L 495 485 L 494 486 L 492 486 L 490 484" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 427 476 L 426 476 L 425 475 L 424 476 L 423 476 L 423 479 L 421 481 L 421 482 L 420 483 L 419 482 L 415 482 L 414 483 L 414 484 L 415 485 L 419 485 L 421 483 L 423 483 L 424 482 L 425 482 L 425 481 L 426 480 L 426 479 L 427 478" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 431 462 L 433 462 L 434 461 L 436 461 L 437 460 L 440 460 L 441 461 L 439 463 L 439 464 L 440 464 L 441 463 L 443 465 L 442 466 L 442 467 L 444 467 L 444 466 L 445 465 L 446 465 L 446 462 L 447 461 L 448 461 L 450 463 L 450 467 L 449 468 L 449 469 L 448 470 L 448 471 L 447 472 L 446 472 L 445 471 L 443 471 L 442 472 L 443 473 L 443 475 L 444 476 L 444 477 L 442 479 L 442 482 L 443 483 L 443 484 L 444 485 L 444 486 L 443 487 L 442 487 L 440 485 L 440 481 L 438 481 L 437 480 L 437 478 L 435 476 L 434 476 L 433 477 L 432 477 L 431 476 L 431 474 L 432 473 L 436 473 L 428 465" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 430 462 L 428 464 L 428 466 L 432 470 L 433 470 L 434 471 L 434 472 L 433 473 L 431 473 L 430 474 L 430 476 L 432 478 L 433 478 L 434 477 L 435 477 L 436 478 L 436 480 L 437 481 L 437 482 L 438 482 L 439 483 L 439 484 L 440 485 L 440 486 L 441 487 L 444 487 L 444 483 L 443 482 L 443 481 L 442 480 L 444 478 L 444 474 L 443 473 L 444 472 L 448 472 L 449 471 L 449 469 L 450 468 L 450 466 L 451 465 L 451 464 L 450 463 L 450 462 L 448 460 L 447 460 L 446 461 L 446 463 L 444 465 L 441 462 L 441 460 L 435 460 L 434 461 L 432 461 L 431 462" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 348 429 L 348 430 L 347 431 L 347 433 L 348 434 L 352 434 L 353 433 L 353 430 L 352 429" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<path d="M 337 429 L 335 431 L 335 432 L 336 433 L 336 434 L 339 434 L 340 435 L 339 436 L 336 436 L 337 437 L 340 437 L 341 436 L 341 429" fill="none" stroke="#aaa" stroke-width="0.5"/>
-<text class="mlbl" x="390" y="150" text-anchor="middle" dominant-baseline="middle">Northern</text>
-<text class="mlbl" x="530" y="330" text-anchor="middle" dominant-baseline="middle">Eastern</text>
-<text class="mlbl" x="290" y="420" text-anchor="middle" dominant-baseline="middle">Central</text>
-<text class="mlbl" x="140" y="420" text-anchor="middle" dominant-baseline="middle">Western</text>
-        </svg>
       </div>
       <div class="scale-row">
-        <span>Fewer locations</span>
+        <span>Fewer</span>
         <div class="sgrad">
           <div style="background:#e8dff5"></div><div style="background:#c9b0e8"></div>
           <div style="background:#a880d8"></div><div style="background:#8650c8"></div>
@@ -276,23 +266,80 @@ svg.country-map{width:100%;height:auto;display:block}
         </div>
         <span>More locations</span>
       </div>
-      <p class="map-hint">👆 Click any region to explore pharmacy locations · Filtered by status above</p>
+      <p class="mhint">👆 Click any province to explore pharmacy locations</p>
     </div>
   </div>
+
+  <!-- UGANDA -->
+  <div class="map-panel">
+    <div class="map-ph">
+      <div class="map-ph-left">
+        <h3>🇺🇬 Uganda — 4 Regions</h3>
+        <p>Hover to preview · Click to drill into Kampala &amp; regional locations</p>
+      </div>
+    </div>
+    <div class="map-pb">
+      <div class="map-wrap">
+        <svg class="cmap" viewBox="0 0 685 661" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 517 21 L 461 73 L 428 70 L 407 58 L 378 71 L 341 74 L 316 99 L 290 91 L 275 65 L 245 84 L 217 69 L 178 82 L 169 96 L 177 112 L 158 151 L 171 178 L 154 214 L 170 230 L 187 226 L 218 254 L 124 357 L 99 364 L 89 391 L 70 397 L 69 435 L 40 486 L 26 592 L 28 646 L 53 638 L 64 656 L 89 643 L 112 610 L 144 610 L 158 601 L 270 603 L 270 591 L 262 591 L 270 561 L 298 528 L 291 515 L 284 521 L 286 510 L 303 506 L 301 499 L 324 500 L 325 490 L 336 497 L 336 485 L 343 492 L 359 486 L 365 470 L 377 476 L 370 485 L 394 474 L 399 488 L 436 453 L 435 442 L 441 448 L 449 442 L 441 454 L 459 456 L 463 463 L 454 468 L 467 482 L 473 461 L 487 460 L 483 472 L 496 478 L 490 485 L 505 486 L 498 478 L 523 462 L 532 429 L 569 393 L 574 373 L 608 354 L 605 335 L 623 317 L 632 283 L 623 214 L 568 136 L 562 104 L 569 83 L 537 70 L 540 59 L 527 60 L 532 50" fill="#e8dff5" stroke="#9a82c0" stroke-width="1.5"/>
+<path class="rshape" data-region="Northern" data-country="uganda" d="M 632 281 L 623 316 L 604 336 L 592 322 L 574 315 L 545 323 L 539 260 L 482 227 L 465 232 L 464 240 L 457 242 L 457 254 L 449 256 L 437 276 L 422 285 L 417 300 L 404 306 L 402 330 L 360 329 L 339 312 L 310 305 L 333 282 L 327 244 L 310 243 L 277 227 L 262 236 L 227 235 L 214 250 L 188 226 L 180 223 L 172 230 L 156 219 L 156 204 L 171 179 L 168 162 L 159 153 L 166 128 L 177 113 L 177 102 L 169 97 L 180 81 L 209 69 L 245 85 L 275 66 L 286 78 L 289 91 L 301 91 L 314 100 L 319 89 L 342 74 L 380 71 L 407 58 L 426 70 L 462 73 L 517 22 L 531 50 L 526 60 L 540 60 L 536 70 L 568 83 L 568 99 L 561 110 L 568 137 L 581 147 L 583 166 L 600 175 L 604 192 L 619 206" fill="#d8ccea" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+<path class="rshape" data-region="Eastern" data-country="uganda" d="M 483 227 L 490 229 L 538 260 L 542 274 L 540 305 L 544 313 L 542 321 L 544 323 L 555 324 L 575 316 L 581 321 L 591 322 L 597 334 L 605 337 L 610 344 L 607 354 L 591 357 L 574 372 L 572 388 L 562 401 L 552 408 L 549 417 L 532 428 L 528 441 L 529 451 L 523 461 L 508 474 L 499 475 L 497 479 L 495 469 L 491 475 L 484 472 L 486 464 L 490 461 L 488 459 L 479 463 L 474 459 L 475 471 L 471 475 L 463 476 L 454 467 L 456 464 L 464 465 L 458 459 L 460 456 L 458 454 L 451 459 L 443 454 L 450 441 L 442 447 L 438 442 L 434 442 L 431 448 L 417 429 L 411 397 L 399 383 L 399 352 L 390 339 L 392 329 L 404 329 L 404 307 L 417 301 L 421 295 L 422 286 L 435 279 L 445 262 L 452 255 L 455 257 L 458 254 L 458 243 L 465 240 L 466 232 L 474 232" fill="#d8ccea" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+<path class="rshape" data-region="Western" data-country="uganda" d="M 327 245 L 332 282 L 310 299 L 306 319 L 273 346 L 239 343 L 221 357 L 225 364 L 232 363 L 243 373 L 236 386 L 237 396 L 229 412 L 219 411 L 211 419 L 212 434 L 201 440 L 199 454 L 187 469 L 192 496 L 198 503 L 191 521 L 199 541 L 195 567 L 207 583 L 210 602 L 157 601 L 143 610 L 111 610 L 110 617 L 91 634 L 88 643 L 65 655 L 60 653 L 54 638 L 50 643 L 41 641 L 29 645 L 26 596 L 32 590 L 30 570 L 36 555 L 32 540 L 42 498 L 41 484 L 52 471 L 58 449 L 69 435 L 70 398 L 89 392 L 97 380 L 101 363 L 125 357 L 154 321 L 187 296 L 217 257 L 216 250 L 227 236 L 259 237 L 279 227 L 308 243" fill="#d8ccea" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+<path class="rshape" data-region="Central" data-country="uganda" d="M 388 330 L 399 354 L 398 383 L 411 399 L 417 431 L 427 442 L 427 449 L 435 453 L 423 460 L 420 471 L 414 467 L 412 470 L 416 475 L 400 487 L 394 485 L 395 474 L 388 480 L 370 484 L 377 475 L 368 476 L 371 472 L 367 469 L 368 462 L 364 471 L 358 473 L 358 486 L 343 491 L 346 482 L 335 485 L 335 494 L 324 490 L 327 496 L 324 499 L 318 494 L 315 504 L 300 499 L 296 502 L 302 506 L 286 509 L 282 495 L 268 486 L 248 488 L 251 491 L 269 490 L 282 503 L 286 513 L 284 522 L 291 516 L 298 527 L 270 560 L 273 567 L 261 589 L 269 592 L 268 603 L 212 603 L 207 581 L 196 568 L 200 544 L 192 519 L 198 502 L 192 495 L 187 470 L 199 456 L 201 441 L 213 433 L 211 420 L 218 412 L 231 411 L 237 397 L 237 385 L 244 375 L 235 364 L 225 363 L 222 357 L 240 343 L 261 347 L 280 343 L 307 319 L 310 306 L 338 312 L 361 330" fill="#d8ccea" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+<path d="M 352 540 L 353 541 L 353 542 L 352 543 L 352 544 L 351 545 L 351 548 L 348 551 L 346 551 L 345 550 L 345 549 L 346 548 L 347 548 L 347 547 L 348 546 L 348 544 L 347 543 L 347 542 L 348 541 L 349 541 L 350 540" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 353 533 L 351 535 L 351 538 L 348 541 L 347 541 L 346 542 L 345 542 L 345 543 L 346 543 L 348 545 L 347 546 L 347 547 L 346 548 L 345 548 L 344 549 L 344 551 L 345 551 L 346 552 L 347 552 L 348 551 L 349 551 L 351 549 L 351 548 L 352 547 L 352 544 L 354 542 L 354 541 L 353 540 L 354 539 L 356 539 L 357 538 L 357 536 L 355 536 L 354 535 L 354 534" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 364 530 L 363 529 L 362 530 L 357 530 L 357 532 L 358 533 L 359 533 L 360 534 L 362 534 L 364 532" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 303 520 L 305 520 L 306 521 L 308 521 L 309 520 L 310 520 L 312 522 L 314 522 L 315 523 L 313 526 L 313 529 L 314 530 L 315 530 L 316 529 L 319 529 L 320 528 L 322 528 L 323 529 L 323 530 L 324 530 L 325 529 L 328 529 L 330 531 L 329 532 L 327 532 L 325 535 L 325 539 L 326 540 L 326 542 L 325 543 L 325 544 L 326 545 L 326 546 L 323 549 L 321 546 L 320 546 L 319 547 L 318 547 L 318 550 L 317 551 L 316 551 L 314 553 L 314 554 L 312 556 L 311 556 L 310 555 L 310 551 L 313 548 L 313 544 L 314 543 L 315 543 L 316 542 L 317 542 L 319 539 L 321 539 L 322 538 L 322 537 L 321 537 L 320 536 L 320 534 L 319 533 L 319 532 L 316 532 L 315 533 L 312 533 L 311 532 L 307 532 L 306 531 L 306 527 L 305 526 L 305 525 L 301 525 L 300 524 L 302 522 L 302 521" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 301 519 L 302 521 L 300 523 L 300 525 L 301 526 L 304 526 L 306 528 L 306 532 L 310 532 L 314 534 L 317 532 L 319 534 L 319 536 L 320 537 L 316 542 L 313 543 L 313 547 L 310 550 L 310 556 L 311 557 L 312 557 L 314 555 L 314 554 L 318 551 L 318 548 L 319 547 L 321 547 L 323 550 L 324 550 L 324 549 L 327 547 L 326 545 L 326 541 L 327 540 L 333 543 L 332 545 L 330 545 L 329 546 L 329 548 L 327 550 L 327 554 L 329 556 L 330 556 L 331 550 L 334 547 L 335 543 L 339 541 L 339 538 L 341 536 L 342 538 L 347 538 L 347 537 L 349 535 L 348 533 L 345 533 L 342 536 L 341 536 L 339 532 L 336 532 L 335 533 L 336 535 L 336 538 L 333 540 L 330 536 L 326 534 L 328 532 L 331 532 L 331 531 L 328 528 L 326 528 L 325 529 L 323 528 L 314 529 L 313 528 L 314 525 L 318 521 L 317 520 L 313 522 L 311 520 L 308 520 L 307 521 L 306 520" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 323 514 L 323 517 L 326 517 L 327 516 L 330 519 L 330 520 L 329 521 L 329 522 L 330 522 L 331 523 L 332 523 L 335 526 L 336 526 L 337 525 L 337 523 L 336 522 L 335 522 L 334 521 L 332 521 L 331 520 L 332 519 L 332 517 L 330 515 L 329 515 L 328 516 L 326 514" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 483 506 L 485 506 L 488 509 L 488 512 L 486 514 L 485 514 L 484 513 L 483 513 L 482 512 L 482 511 L 480 509" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 482 506 L 480 508 L 480 510 L 484 514 L 487 514 L 488 513 L 488 508 L 486 506" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 371 507 L 373 505 L 375 505 L 375 504 L 376 503 L 376 499 L 377 498 L 378 498 L 379 499 L 379 500 L 380 501 L 380 504 L 381 505 L 382 505 L 382 504 L 384 502 L 386 504 L 386 506 L 384 508 L 383 508 L 382 509 L 381 509 L 380 510 L 379 510 L 378 509 L 378 508 L 377 509 L 376 509 L 375 510 L 374 509 L 373 509" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 385 491 L 386 492 L 386 493 L 385 494 L 385 496 L 383 498 L 381 498 L 380 499 L 379 498 L 379 497 L 378 496 L 379 495 L 380 495 L 380 494 L 381 493 L 381 492 L 382 491 L 383 492 L 384 491" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 385 490 L 384 490 L 383 491 L 381 491 L 380 492 L 380 493 L 379 494 L 378 494 L 377 495 L 378 496 L 378 497 L 377 498 L 376 498 L 376 501 L 374 503 L 374 504 L 373 505 L 372 505 L 371 506 L 371 508 L 373 510 L 382 510 L 386 506 L 386 503 L 385 502 L 383 502 L 381 504 L 380 503 L 380 501 L 383 498 L 384 498 L 385 497 L 385 496 L 386 495 L 386 491" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 437 488 L 438 489 L 438 491 L 434 495 L 433 494 L 433 493 L 432 492 L 432 491 L 435 488" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 267 488 L 268 487 L 270 487 L 271 488 L 272 488 L 273 489 L 274 489 L 276 491 L 277 491 L 282 496 L 282 497 L 283 498 L 283 500 L 282 501 L 280 499 L 279 499 L 277 497 L 276 497 L 272 493 L 272 492 L 270 490 L 269 490" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 438 488 L 437 488 L 436 487 L 435 487 L 432 490 L 432 493 L 433 494 L 433 495 L 435 495 L 438 492 L 438 491 L 439 490 L 438 489" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 490 483 L 493 480 L 495 480 L 496 481 L 497 481 L 498 482 L 498 483 L 499 484 L 503 484 L 504 485 L 504 486 L 503 487 L 502 486 L 499 486 L 498 487 L 497 487 L 495 485 L 494 486 L 492 486 L 490 484" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 427 476 L 426 476 L 425 475 L 424 476 L 423 476 L 423 479 L 421 481 L 421 482 L 420 483 L 419 482 L 415 482 L 414 483 L 414 484 L 415 485 L 419 485 L 421 483 L 423 483 L 424 482 L 425 482 L 425 481 L 426 480 L 426 479 L 427 478" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 431 462 L 433 462 L 434 461 L 436 461 L 437 460 L 440 460 L 441 461 L 439 463 L 439 464 L 440 464 L 441 463 L 443 465 L 442 466 L 442 467 L 444 467 L 444 466 L 445 465 L 446 465 L 446 462 L 447 461 L 448 461 L 450 463 L 450 467 L 449 468 L 449 469 L 448 470 L 448 471 L 447 472 L 446 472 L 445 471 L 443 471 L 442 472 L 443 473 L 443 475 L 444 476 L 444 477 L 442 479 L 442 482 L 443 483 L 443 484 L 444 485 L 444 486 L 443 487 L 442 487 L 440 485 L 440 481 L 438 481 L 437 480 L 437 478 L 435 476 L 434 476 L 433 477 L 432 477 L 431 476 L 431 474 L 432 473 L 436 473 L 428 465" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 430 462 L 428 464 L 428 466 L 432 470 L 433 470 L 434 471 L 434 472 L 433 473 L 431 473 L 430 474 L 430 476 L 432 478 L 433 478 L 434 477 L 435 477 L 436 478 L 436 480 L 437 481 L 437 482 L 438 482 L 439 483 L 439 484 L 440 485 L 440 486 L 441 487 L 444 487 L 444 483 L 443 482 L 443 481 L 442 480 L 444 478 L 444 474 L 443 473 L 444 472 L 448 472 L 449 471 L 449 469 L 450 468 L 450 466 L 451 465 L 451 464 L 450 463 L 450 462 L 448 460 L 447 460 L 446 461 L 446 463 L 444 465 L 441 462 L 441 460 L 435 460 L 434 461 L 432 461 L 431 462" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 348 429 L 348 430 L 347 431 L 347 433 L 348 434 L 352 434 L 353 433 L 353 430 L 352 429" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<path d="M 337 429 L 335 431 L 335 432 L 336 433 L 336 434 L 339 434 L 340 435 L 339 436 L 336 436 L 337 437 L 340 437 L 341 436 L 341 429" fill="none" stroke="#bbb" stroke-width="0.5"/>
+<text class="mlbl" x="390" y="150" text-anchor="middle" dominant-baseline="middle">Northern</text>
+<text class="mlbl" x="530" y="330" text-anchor="middle" dominant-baseline="middle">Eastern</text>
+<text class="mlbl" x="290" y="420" text-anchor="middle" dominant-baseline="middle">Central</text>
+<text class="mlbl" x="140" y="420" text-anchor="middle" dominant-baseline="middle">Western</text>
+        </svg>
+      </div>
+      <div class="scale-row">
+        <span>Fewer</span>
+        <div class="sgrad">
+          <div style="background:#e8dff5"></div><div style="background:#c9b0e8"></div>
+          <div style="background:#a880d8"></div><div style="background:#8650c8"></div>
+          <div style="background:#6B3FA0"></div>
+        </div>
+        <span>More locations</span>
+      </div>
+      <p class="mhint">👆 Click any region to explore pharmacy locations</p>
+    </div>
+  </div>
+
 </div>
 
-<!-- Hover tooltip -->
+<!-- HOVER TIP -->
 <div id="htip">
   <div class="hth" id="ht-title">Region</div>
   <div class="htb">
-    <div class="htr"><span>🏛 Flagship</span><span class="htc" id="ht-fl">0</span></div>
-    <div class="htr"><span>🏪 Classic</span><span class="htc" id="ht-cl">0</span></div>
-    <div class="htr"><span>🏘 Neighbourhood</span><span class="htc" id="ht-nb">0</span></div>
+    <div class="htr"><span>🏛 Flagship</span><span class="htv" id="ht-fl">0</span></div>
+    <div class="htr"><span>🏪 Classic</span><span class="htv" id="ht-cl">0</span></div>
+    <div class="htr"><span>🏘 Neighbourhood</span><span class="htv" id="ht-nb">0</span></div>
+    <div class="htsize" id="ht-size"></div>
     <div class="htf">Click to explore →</div>
   </div>
 </div>
 
-<!-- Drill-down modal -->
+<!-- MODAL -->
 <div class="moverlay" id="modal">
   <div class="mdlg">
     <div class="mhd">
@@ -304,376 +351,402 @@ svg.country-map{width:100%;height:auto;display:block}
 </div>
 
 <script>
-// ── Data ──────────────────────────────────────────────────────────────────
 let STORES = {"kenya": {"Nairobi": {"Flagship": [{"mall": "Business Bay Square (BBS) Mall", "area": "Eastleigh", "pharmacy": "Goodlife + Pharmaplus", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/Business+Bay+Square+(BBS)+Mall"}, {"mall": "Two Rivers Mall", "area": "Runda", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/Two+Rivers+Mall"}, {"mall": "Sarit Centre", "area": "Westlands", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/Sarit+Centre"}, {"mall": "The Hub Karen", "area": "Karen", "pharmacy": "Goodlife", "format": "Goodlife Neighbourhood", "status": "Yellow", "maps": "https://www.google.com/maps/search/The+Hub+Karen"}, {"mall": "Garden City Mall", "area": "Thika Road", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/place/Garden+City+Mall/@-1.23272,36.8785,17z"}, {"mall": "Westgate Shopping Mall", "area": "Westlands", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/Westgate+Shopping+Mall"}, {"mall": "Imaara Mall", "area": "Mombasa Road", "pharmacy": "Pharmaplus", "format": "Pharmaplus Flagship", "status": "Red", "maps": "https://www.google.com/maps/search/Imaara+Mall"}, {"mall": "Village Market", "area": "Village Market", "pharmacy": "Goodlife + Pharmaplus", "format": "Goodlife Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/Village+Market"}, {"mall": "Junction Mall", "area": "Kilimani", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/Junction+Mall"}, {"mall": "Thika Road Mall (TRM)", "area": "Thika Road", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/Thika+Road+Mall+(TRM)"}, {"mall": "Yaya Centre", "area": "Kilimani", "pharmacy": "Shah Chemist", "format": "Shah Chemist Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/Yaya+Centre"}, {"mall": "Galleria Mall", "area": "Karen", "pharmacy": "Portal", "format": "Portal Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/Galleria+Mall"}, {"mall": "Greenspan Mall", "area": "Greenspan", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/Greenspan+Mall"}, {"mall": "Prestige Plaza", "area": "Nairobi", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/Prestige+Plaza"}, {"mall": "Ridgeways Mall", "area": "Ridgeways", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/Ridgewys+Mall"}, {"mall": "Riverside Mall", "area": "Riverside", "pharmacy": "Dovey", "format": "Dovey Classic", "status": "Yellow", "maps": "https://www.google.com/maps/search/Riverside+Mall+Shopping+Centre"}, {"mall": "Rosslyn Riviera", "area": "Runda", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/Rosslyn+Riviera"}, {"mall": "Runda Mall", "area": "Nairobi", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/place/Runda+Mall/@-1.2156,36.8350,17z"}, {"mall": "Our Mall", "area": "Karen", "pharmacy": "Our Pharmacy", "format": "Community Pharmacy", "status": "Yellow", "maps": "https://www.google.com/maps/search/Our+Mall"}, {"mall": "Water Front", "area": "Karen", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/Water+Front+"}, {"mall": "Lavington Mall", "area": "Lavington", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Lavington+Mall+Nairobi"}, {"mall": "Valley Arcade - Fedha Mall", "area": "Lavington", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/Valley+Arcade+-+Fedha+Mall"}, {"mall": "Nairobi Mega Plaza", "area": "Nairobi", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/Nairobi+Mega+Plaza"}, {"mall": "The Waterfront Karen", "area": "Karen", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/The+Waterfront+Karen"}, {"mall": "GTC Mall", "area": "Westlands", "pharmacy": "AVA", "format": "Ava", "status": "Yellow", "maps": "https://www.google.com/maps/search/GTC+Mall"}, {"mall": "Rhapta Promenade Mall", "area": "Westlands", "pharmacy": "AVA", "format": "Ava", "status": "Yellow", "maps": "https://www.google.com/maps/search/Rhapta+Promenade+Mall"}, {"mall": "Westlands Square", "area": "Westlands", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/Westlands+Square"}], "Classic": [{"mall": "9 Park Square Mall Ridgeways", "area": "Ridgeways", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=9+Park+Square+Mall+Ridgeways"}, {"mall": "Gateway Mall", "area": "Nairobi", "pharmacy": "Pharmaplus", "format": "Pharmaplus Flagship", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=Gateway+Mall+Nairobi"}, {"mall": "NextGen Mall", "area": "Nairobi", "pharmacy": "Goodlife + Pharmaplus", "format": "Pharmaplus Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=NextGen+Mall+Nairobi"}, {"mall": "Capital Centre", "area": "Nairobi", "pharmacy": "Pharmaplus + Nexgen", "format": "Pharmaplus Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Capital+Centre+Nairobi"}, {"mall": "Ciata Mall", "area": "Nairobi", "pharmacy": "Pharmaplus Flagship", "format": "Pharmaplus Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Ciata+Mall+Nairobi"}, {"mall": "Hardy Post Shopping Mall", "area": "Nairobi", "pharmacy": "Touchstone", "format": "Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Hardy+Post+Shopping+Mall+Nairobi"}, {"mall": "Broadwalk Mall Parklands", "area": "Parklands", "pharmacy": "Touchstone", "format": "Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Broadwalk+Mall+Parklands+Nairobi"}, {"mall": "Naivas Hyper", "area": "Nairobi", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Naivas+Hyper+Nairobi"}, {"mall": "Circle Mall", "area": "Nairobi", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Circle+Mall+Nairobi"}, {"mall": "Basic Kileleshwa", "area": "Kileleshwa", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Basic+Kileleshwa+Nairobi"}, {"mall": "Rhapta Square", "area": "Westlands", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Rhapta+Square+Nairobi"}, {"mall": "Rhapta 220", "area": "Westlands", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Rhapta+220+Nairobi"}, {"mall": "Luqman Mall Valley Arcade", "area": "Valley Arcade", "pharmacy": "Pharmaplus", "format": "Pharmaplus Flagship", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=Luqman+Mall+Valley+Arcade+Nairobi"}, {"mall": "The Well Karen", "area": "Karen", "pharmacy": "Touchstone", "format": "Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=The+Well+Karen+Nairobi"}, {"mall": "My Town Karen", "area": "Karen", "pharmacy": "Lifemed", "format": "Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=My+Town+Karen+Nairobi"}, {"mall": "Karen Crossroads Mall", "area": "Karen", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Karen+Crossroads+Mall+Nairobi"}, {"mall": "The District Mall", "area": "Nairobi", "pharmacy": "Pharmaplus", "format": "Pharmaplus Flagship", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=The+District+Mall+Nairobi"}, {"mall": "Beacon Mall", "area": "Nairobi", "pharmacy": "Pharmaplus", "format": "Pharmaplus Flagship", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=Beacon+Mall+Nairobi"}, {"mall": "Adlife Plaza", "area": "Nairobi", "pharmacy": "Assorted Duka la Dawa", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Adlife+Plaza+Nairobi"}, {"mall": "NSSF Hazina Towers", "area": "Nairobi", "pharmacy": "Assorted Duka la Dawa", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=NSSF+Hazina+Towers+Nairobi"}, {"mall": "Mwanzi Mall", "area": "Nairobi", "pharmacy": "Pharmaplus", "format": "Pharmaplus Flagship", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=Mwanzi+Mall+Nairobi"}, {"mall": "The Mall Westlands", "area": "Westlands", "pharmacy": "Assorted Duka la Dawa", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=The+Mall+Westlands+Nairobi"}, {"mall": "Shujaa Mall", "area": "Kilimani", "pharmacy": "Pharmaplus", "format": "Pharmaplus Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Shujaa+Mall+Nairobi"}, {"mall": "Southfield Mall", "area": "Nairobi", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Southfield+Mall+Nairobi"}, {"mall": "One Stop Karen", "area": "Karen", "pharmacy": "Pharmaplus", "format": "Pharmaplus Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=One+Stop+Karen+Nairobi"}, {"mall": "Freedom Heights", "area": "Nairobi", "pharmacy": "Pharmart Chemist", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Freedom+Heights+Nairobi"}, {"mall": "ABC Place", "area": "Nairobi", "pharmacy": "Pharmart", "format": "", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=ABC+Place+Nairobi"}, {"mall": "Kilimani Mall", "area": "Kilimani", "pharmacy": "Pharmaplus", "format": "Pharmaplus Flagship", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=Kilimani+Mall+Nairobi"}], "Neighbourhood": [{"mall": "T-Mall", "area": "Nairobi", "pharmacy": "Rangechem", "format": "Goodlife Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=T-Mall+Nairobi"}, {"mall": "The Point Mall", "area": "Nairobi", "pharmacy": "Assorted Duka la Dawa", "format": "Goodlife Classic", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=The+Point+Mall+Nairobi"}, {"mall": "Masai Mall", "area": "Nairobi", "pharmacy": "Maalibu", "format": "Assorted Duka la Dawa", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Masai+Mall+Nairobi"}, {"mall": "Greenhouse Mall", "area": "Nairobi", "pharmacy": "Maalibu", "format": "Assorted Duka la Dawa", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Greenhouse+Mall+Nairobi"}, {"mall": "Linklet Mall", "area": "Nairobi", "pharmacy": "", "format": "Assorted Duka la Dawa", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Linklet+Mall+Nairobi"}, {"mall": "Mountain Mall", "area": "Nairobi", "pharmacy": "Rangechem", "format": "Assorted Duka la Dawa", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Mountain+Mall+Nairobi"}, {"mall": "The Oval", "area": "Nairobi", "pharmacy": "Duka la Dawa", "format": "Assorted Duka la Dawa", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=The+Oval+Nairobi"}, {"mall": "Bihi Towers Mall", "area": "Nairobi", "pharmacy": "Pharmaplus", "format": "Duka la Dawa", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=Bihi+Towers+Nairobi"}, {"mall": "Sunshine Mall", "area": "Nairobi", "pharmacy": "", "format": "Nil", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Sunshine+Mall+Nairobi"}, {"mall": "Mountain View Mall", "area": "Nairobi", "pharmacy": "Rangechem", "format": "Assorted Duka la Dawa", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Mountain+View+Mall+Nairobi"}, {"mall": "Madaraka Shopping Centre", "area": "Nairobi", "pharmacy": "Duka la Dawa", "format": "Assorted Duka la Dawa", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Madaraka+Shopping+Centre+Nairobi"}, {"mall": "Kiambu Mall", "area": "Kiambu", "pharmacy": "Rangechem", "format": "Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Kiambu+Mall"}, {"mall": "Park Place", "area": "Nairobi", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Park+Place+Nairobi"}, {"mall": "Westfield Mall", "area": "Nairobi", "pharmacy": "Duka la Dawa", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Westfield+Mall+Nairobi"}, {"mall": "B Arcade Mall", "area": "Nairobi", "pharmacy": "Pharmaplus", "format": "Assorted Duka la Dawa", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=B+Arcade+Mall+Nairobi"}, {"mall": "Chaka Road Mall", "area": "Kilimani", "pharmacy": "Pharmaplus", "format": "Assorted Duka la Dawa", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=Chaka+Road+Mall+Kilimani"}, {"mall": "Box Mall - Kileleshwa", "area": "Kileleshwa", "pharmacy": "Pharmaplus", "format": "Assorted Duka la Dawa", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=Box+Mall+Kileleshwa"}, {"mall": "Suguta Mall Kileleshwa", "area": "Kileleshwa", "pharmacy": "Pharmaplus", "format": "Assorted Duka la Dawa", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=Suguta+Mall+Kileleshwa"}, {"mall": "Lavington Curve", "area": "Lavington", "pharmacy": "Assorted Duka la Dawa", "format": "Assorted Duka la Dawa", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Lavington+Curve+Nairobi"}, {"mall": "Karen Triangle", "area": "Karen", "pharmacy": "Lifemed", "format": "Assorted Duka la Dawa", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Karen+Triangle+Nairobi"}]}, "Mombasa": {"Flagship": [{"mall": "City Mall", "area": "Nyali", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/City+Mall"}, {"mall": "China Centre", "area": "Nyali", "pharmacy": "Pharmaplus", "format": "Pharmaplus Flagship", "status": "Red", "maps": "https://www.google.com/maps/search/China+Centre+"}, {"mall": "Nyali Naivas", "area": "Nyali", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Nyali+Naivas+Mombasa"}, {"mall": "Promenade Mall Mombasa", "area": "Mombasa", "pharmacy": "AVA", "format": "Ava", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Promenade+Mall+Mombasa"}], "Classic": [{"mall": "Nyali Cinemax", "area": "Nyali", "pharmacy": "Pharmaplus", "format": "", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=Nyali+Cinemax+Mombasa"}, {"mall": "Likoni Mall", "area": "Likoni", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Likoni+Mall+Mombasa"}, {"mall": "Mombasa Trade Centre", "area": "Mombasa", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Mombasa+Trade+Centre"}, {"mall": "Great Wall Garden Mall", "area": "Mombasa", "pharmacy": "Duka la Dawa", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Great+Wall+Garden+Mall+Mombasa"}, {"mall": "Nyali Cinemax 1", "area": "Nyali", "pharmacy": "Pharmaplus", "format": "Pharmaplus Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Nyali+Cinemax+Mombasa"}, {"mall": "Nyali Bazaar Mall", "area": "Nyali", "pharmacy": "Pharmaplus", "format": "Pharmaplus Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Nyali+Bazaar+Mall+Mombasa"}], "Neighbourhood": [{"mall": "Mtwapa Mall", "area": "Mtwapa", "pharmacy": "Duka la Dawa", "format": "Assorted Duka la Dawa", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Mtwapa+Mall+Kilifi"}]}, "Kisumu": {"Flagship": [{"mall": "United Mall", "area": "Kisumu", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/United+Mall"}, {"mall": "Westend Mall", "area": "Kisumu", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Westend+Mall+Kisumu"}], "Classic": [{"mall": "Mega City Mall", "area": "Kisumu", "pharmacy": "Goodlife + Pharmaplus", "format": "Pharmaplus Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Mega+City+Mall+Kisumu"}, {"mall": "Tuffoam Mall", "area": "Kisumu", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Tuffoam+Mall+Kisumu"}, {"mall": "Reinsurance Plaza", "area": "Kisumu", "pharmacy": "Malibu", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Reinsurance+Plaza+Kisumu"}], "Neighbourhood": [{"mall": "Mega Plaza Mall", "area": "Kisumu", "pharmacy": "Goodlife", "format": "Closed", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Mega+Plaza+Mall+Kisumu"}]}, "Rift Valley": {"Flagship": [{"mall": "Rupa Mall", "area": "Eldoret", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/Rupa+Mall"}, {"mall": "Westside Mall", "area": "Nakuru", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/Westside+Mall"}, {"mall": "Buffalo Mall", "area": "Naivasha", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Buffalo+Mall+Naivasha"}], "Classic": [{"mall": "Kericho Green Mall", "area": "Kericho", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Green+Square+Mall+Kericho"}, {"mall": "Basic Moran", "area": "Narok", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Basic+Moran+Narok"}, {"mall": "Basic Nakuru Statehouse", "area": "Nakuru", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Basic+Nakuru+Statehouse"}, {"mall": "Basic Elgon View", "area": "Eldoret", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Basic+Elgon+View+Eldoret"}], "Neighbourhood": [{"mall": "Oltalet Mall", "area": "Narok", "pharmacy": "Goodlife", "format": "Closed", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Oltalet+Mall+Narok"}, {"mall": "Zion Mall", "area": "Uasin Gishu", "pharmacy": "Assorted Duka la Dawa", "format": "Assorted Duka la Dawa", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Zion+Mall+Eldoret"}, {"mall": "Mountain View Shopping Centre", "area": "Nakuru", "pharmacy": "Pharmaplus", "format": "Pharmaplus Flagship", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=Mountain+View+Shopping+Centre+Nakuru"}, {"mall": "Moi Avenue Mall", "area": "Nakuru", "pharmacy": "Duka la Dawa", "format": "Assorted Duka la Dawa", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Moi+Avenue+Mall+Nakuru"}, {"mall": "Highway Mall", "area": "Nakuru", "pharmacy": "Duka la Dawa", "format": "Assorted Duka la Dawa", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Highway+Mall+Nakuru"}, {"mall": "Mountain Mall Rongai", "area": "Kajiado", "pharmacy": "Pharmaplus", "format": "Flagship", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=Mountain+Mall+Rongai"}]}, "Eastern": {"Flagship": [{"mall": "Cedar Mall", "area": "Nanyuki", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/Cedar+Mall"}, {"mall": "Nord", "area": "Ruiru", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Nord+Mall+Ruiru"}], "Classic": [{"mall": "Nanyuki Mall", "area": "Nanyuki", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Nanyuki+Mall"}, {"mall": "GreenPark Mall", "area": "Athi River", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=GreenPark+Mall+Athi+River"}, {"mall": "Greenwood Park", "area": "Meru", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Greenwood+Park+Meru"}, {"mall": "Meru Greenwood Mall", "area": "Meru", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Meru+Greenwood+Mall"}, {"mall": "Signature Mall", "area": "Athi River", "pharmacy": "Pharmaplus", "format": "", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=Signature+Mall+Athi+River"}, {"mall": "Accacia Mall Kitengela", "area": "Athi River", "pharmacy": "Pharmaplus", "format": "", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=Acacia+Mall+Kitengela"}, {"mall": "Crystal Rivers", "area": "Athi River", "pharmacy": "Touchstone", "format": "Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Crystal+Rivers+Mall+Athi+River"}, {"mall": "Kitengela Mall", "area": "Athi River", "pharmacy": "Pharmaplus", "format": "Pharmaplus Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Kitengela+Mall"}], "Neighbourhood": [{"mall": "Ananas Mall", "area": "Thika", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Ananas+Mall+Thika"}, {"mall": "Greenwood Mall Meru", "area": "Meru", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Greenwood+mall+Meru"}, {"mall": "Coloho Mall", "area": "Athi River", "pharmacy": "Assorted Duka la Dawa", "format": "Assorted Duka la Dawa", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Coloho+Mall+Athi+River"}]}, "Central": {"Flagship": [], "Classic": [{"mall": "Basic Nakuru Statehouse", "area": "Nairobi", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Basic+Nakuru+Statehouse"}], "Neighbourhood": [{"mall": "Nyeri Mall", "area": "Nyeri", "pharmacy": "Duka la Dawa", "format": "Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Nyeri+Mall"}, {"mall": "K-Mall", "area": "Kiambu", "pharmacy": "", "format": "Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=K-Mall+Kiambu"}]}, "Western": {"Flagship": [], "Classic": [{"mall": "Holden Mall Kakamega", "area": "Kakamega", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Holden+Mall+Kakamega"}], "Neighbourhood": [{"mall": "Cathedral Mall Kakamega", "area": "Kakamega", "pharmacy": "Pharmaplus", "format": "Pharmaplus Flagship", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=Cathedral+Mall+Kakamega"}, {"mall": "Kakamega Mega Mall", "area": "Kakamega", "pharmacy": "Pharmaplus", "format": "Flagship", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=Kakamega+Mega+Mall"}]}, "Coast": {"Flagship": [{"mall": "Marmalade Watamu", "area": "Watamu", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Marmalade+Watamu"}, {"mall": "Diani Centre Point", "area": "Diani", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Diani+Centre+Point"}], "Classic": [{"mall": "Oasis Mall - Malindi", "area": "Malindi", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Oasis+Mall+Malindi"}, {"mall": "The Festival Mall", "area": "Malindi", "pharmacy": "Pharmaplus", "format": "Pharmaplus Flagship", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=Festival+Mall+Malindi"}, {"mall": "Diani Shopping", "area": "Diani", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Diani+Shopping+Centre"}], "Neighbourhood": [{"mall": "Malindi Mall", "area": "Malindi", "pharmacy": "Goodlife", "format": "", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Malindi+Mall"}, {"mall": "Watamu Mall", "area": "Watamu", "pharmacy": "Goodlife", "format": "Malibu Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Watamu+Mall"}, {"mall": "Festival Mall", "area": "Malindi", "pharmacy": "Pharmaplus", "format": "Pharmaplus Flagship", "status": "Red", "maps": "https://www.google.com/maps/search/?api=1&query=Festival+Mall+Malindi"}]}, "Nyanza": {"Flagship": [], "Classic": [{"mall": "Kitale Mega Plaza", "area": "Kitale", "pharmacy": "Goodlife", "format": "Goodlife Classic", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Kitale+Mega+Plaza"}], "Neighbourhood": [{"mall": "Kisii Mall", "area": "Kisii", "pharmacy": "Goodlife", "format": "Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Kisii+Mall"}, {"mall": "Maalim Mall", "area": "Garissa", "pharmacy": "Duka la Dawa", "format": "Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Maalim+Mall+Garissa"}]}, "North Eastern": {"Flagship": [], "Classic": [], "Neighbourhood": [{"mall": "Maalim Mall", "area": "Garissa", "pharmacy": "Duka la Dawa", "format": "Flagship", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Maalim+Mall+Garissa"}]}}, "uganda": {"Central": {"Flagship": [{"mall": "Acacia Mall", "area": "Kololo", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://maps.app.goo.gl/DKGvdBG4EKkQE8VL9", "city": "Kampala"}, {"mall": "Arena Mall", "area": "Nsambya", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Arena+Mall+Nsambya+Kampala+Uganda", "city": "Kampala"}, {"mall": "Forest Mall", "area": "Lugogo", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Forest+Mall+Lugogo+Kampala+Uganda", "city": "Kampala"}, {"mall": "Kingdom Mall Kampala", "area": "CBD", "pharmacy": "Other", "format": "", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Kingdom+Mall+Kampala+CBD+Uganda", "city": "Kampala"}, {"mall": "Garden City Mall Uganda", "area": "Naguru", "pharmacy": "Pearl Green Pharmacy", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Garden+City+Mall+Naguru+Kampala+Uganda", "city": "Kampala"}, {"mall": "YK Lugogo Mall", "area": "Nakawa", "pharmacy": "Goodlife", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Lugogo+Mall+Nakawa+Kampala+Uganda", "city": "Kampala"}, {"mall": "Village Mall Uganda", "area": "Bugolobi", "pharmacy": "C&A", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Village+Mall+Bugolobi+Kampala+Uganda", "city": "Kampala"}, {"mall": "Metroplex Shopping Centre", "area": "Nalya", "pharmacy": "MYDAWA Pharmacy", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Metroplex+Shopping+Centre+Nalya+Kampala", "city": "Kampala"}, {"mall": "Freedom City Mall", "area": "Namasuba", "pharmacy": "Vine Pharmaceuticals Ltd", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Freedom+City+Mall+Namasuba+Kampala", "city": "Kampala"}, {"mall": "Victoria Mall", "area": "Entebbe", "pharmacy": "Goodlife", "format": "Goodlife Flagship", "status": "Green", "maps": "https://www.google.com/maps/search/?api=1&query=Victoria+Mall+Entebbe+Uganda", "city": "Entebbe"}], "Classic": [{"mall": "Akamwesi Shopping Mall", "area": "Bugolobi", "pharmacy": "Lexie Meds", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Akamwesi+Shopping+Mall+Bugolobi+Kampala", "city": "Kampala"}, {"mall": "Penta Mall", "area": "Munyonyo", "pharmacy": "Lexie Meds", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Penta+Mall+Munyonyo+Kampala", "city": "Kampala"}, {"mall": "Kyangera Mall", "area": "Kyangera", "pharmacy": "Lexie Meds", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Kyangera+Mall+Kampala+Uganda", "city": "Kampala"}, {"mall": "Kyanja Mall", "area": "Kyanja", "pharmacy": "Lexie Meds", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Kyanja+Mall+Kampala+Uganda", "city": "Kampala"}, {"mall": "US Mall", "area": "Kyanja", "pharmacy": "Other", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=US+Mall+Kyanja+Kampala", "city": "Kampala"}, {"mall": "Quality Mall (Lubowa)", "area": "Lubowa", "pharmacy": "Westlink", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Quality+Mall+Lubowa+Kampala", "city": "Kampala"}, {"mall": "Quality Mall (Kitende)", "area": "Kitende", "pharmacy": "Westlink", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Quality+Mall+Kitende+Kampala", "city": "Kampala"}, {"mall": "Prime Rose Mall", "area": "Lubowa", "pharmacy": "Westlink", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Prime+Rose+Mall+Lubowa+Kampala", "city": "Kampala"}, {"mall": "S&S Mall", "area": "Entebbe", "pharmacy": "Westlink", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=S+S+Mall+Entebbe+Uganda", "city": "Entebbe"}, {"mall": "Imperial Shopping Mall", "area": "Entebbe", "pharmacy": "Other", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Imperial+Shopping+Mall+Entebbe+Uganda", "city": "Entebbe"}, {"mall": "TMT Atrium Bukoto", "area": "Bukoto", "pharmacy": "Other", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=TMT+Atrium+Bukoto+Kampala", "city": "Kampala"}, {"mall": "UK Mall", "area": "Ghaba", "pharmacy": "Other", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=UK+Mall+Kampala+Uganda", "city": "Kampala"}, {"mall": "Kings Junction Mall", "area": "Munyonyo", "pharmacy": "Junction Health Pharmacy", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Kings+Junction+Mall+Munyonyo+Kampala", "city": "Kampala"}, {"mall": "Apex Mall", "area": "Bulindo", "pharmacy": "Ecopharm", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Apex+Mall+Bulindo+Kampala", "city": "Kampala"}], "Neighbourhood": [{"mall": "Tropical Complex", "area": "Bulindo", "pharmacy": "Ecopharm", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Tropical+Complex+Bulindo+Kampala", "city": "Kampala"}, {"mall": "Mukwano Arcade Complex", "area": "Entebbe", "pharmacy": "Ecopharm", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Mukwano+Arcade+Complex+Kampala", "city": "Entebbe"}, {"mall": "Wandegeya Area", "area": "Wandegeya", "pharmacy": "Friecca Pharmacy", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Wandegeya+Kampala+Uganda", "city": "Kampala"}, {"mall": "Mulago", "area": "Mulago", "pharmacy": "Friecca Pharmacy", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Mulago+Kampala+Uganda", "city": "Kampala"}, {"mall": "Ntinda", "area": "Ntinda", "pharmacy": "Friecca Pharmacy", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Ntinda+Kampala+Uganda", "city": "Kampala"}, {"mall": "Bulindo", "area": "Bulindo", "pharmacy": "Friecca Pharmacy", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Bulindo+Kampala+Uganda", "city": "Kampala"}]}, "Western": {"Flagship": [], "Classic": [{"mall": "Mbarara City Mall", "area": "Mbarara", "pharmacy": "Other", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Mbarara+City+Mall+Uganda", "city": "Mbarara"}, {"mall": "Portville Mall", "area": "Mbarara", "pharmacy": "Other", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Portville+Mall+Mbarara+Uganda", "city": "Mbarara"}, {"mall": "Adit Mall", "area": "Mbarara", "pharmacy": "Dr. Plaza", "format": "", "status": "Yellow", "maps": "https://www.google.com/maps/search/?api=1&query=Adit+Mall+Mbarara+Uganda", "city": "Mbarara"}], "Neighbourhood": []}, "Northern": {"Flagship": [], "Classic": [], "Neighbourhood": []}, "Eastern": {"Flagship": [], "Classic": [], "Neighbourhood": []}}};
-let currentCountry = 'kenya';
 let activeFilter = 'All';
-let modalRegion = '';
 
-// ── County→Province (Kenya) ───────────────────────────────────────────────
+// County→Province (Kenya)
 const C2P = {
   'nairobi':'Nairobi','ruiru':'Central','thika':'Central','ruaka':'Central',
-  'kiambu':'Central','nanyuki':'Eastern','nyeri':'Central',
+  'kiambu':'Central','nanyuki':'Eastern','nyeri':'Central','muranga':'Central',
   'mombasa':'Coast','kilifi':'Coast','watamu':'Coast','diani':'Coast','malindi':'Coast',
-  'meru':'Eastern','athi river':'Eastern','machakos':'Eastern',
+  'meru':'Eastern','athi river':'Eastern','machakos':'Eastern','embu':'Eastern',
   'garissa':'North Eastern','wajir':'North Eastern','mandera':'North Eastern',
-  'kisumu':'Nyanza','kisii':'Nyanza','migori':'Nyanza',
+  'kisumu':'Nyanza','kisii':'Nyanza','migori':'Nyanza','siaya':'Nyanza',
   'nakuru':'Rift Valley','eldoret':'Rift Valley','uasin gishu':'Rift Valley',
   'kericho':'Rift Valley','naivasha':'Rift Valley','narok':'Rift Valley',
   'kajiado':'Rift Valley','kitale':'Rift Valley','ngong':'Rift Valley',
   'kakamega':'Western','bungoma':'Western','busia':'Western',
+  'ex nairobi':'Eastern','kilimani':'Nairobi',
 };
 const C2R_UG = {
-  'kampala':'Central','entebbe':'Central','wakiso':'Central',
-  'jinja':'Eastern','mbale':'Eastern',
+  'kampala':'Central','entebbe':'Central','wakiso':'Central','mukono':'Central',
+  'jinja':'Eastern','mbale':'Eastern','tororo':'Eastern',
   'gulu':'Northern','lira':'Northern','arua':'Northern',
   'mbarara':'Western','fort portal':'Western','kabale':'Western',
 };
 
-// ── Utility ───────────────────────────────────────────────────────────────
+// Max mall size for bar scaling
+const MAX_SQM = 130000;
+
 function getRegionData(country, region) {
   return STORES[country]?.[region] || {Flagship:[],Classic:[],Neighbourhood:[]};
 }
-
 function totalForRegion(country, region) {
   const d = getRegionData(country, region);
   return (d.Flagship?.length||0)+(d.Classic?.length||0)+(d.Neighbourhood?.length||0);
 }
-
-function classifyPharmacy(chain) {
-  const c = (chain||'').toLowerCase();
-  if (c.includes('goodlife')) return 'goodlife';
-  return 'others';
+function statusCls(s) {
+  const v=(s||'').toLowerCase();
+  if(v==='green') return 'grn'; if(v==='red') return 'red'; return 'yel';
 }
-
-function statusClass(status) {
-  const s = (status||'').toLowerCase();
-  if (s==='green') return 'green';
-  if (s==='red') return 'red';
-  return 'yellow';
-}
-
 function catBadge(cat) {
-  if (cat==='Flagship') return '<span class="badge fl">Flagship</span>';
-  if (cat==='Classic') return '<span class="badge cl">Classic</span>';
+  if(cat==='Flagship') return '<span class="badge fl">Flagship</span>';
+  if(cat==='Classic') return '<span class="badge cl">Classic</span>';
   return '<span class="badge nb">Neighbourhood</span>';
 }
+function parseSqm(raw) {
+  if(!raw) return null;
+  const n = parseInt(String(raw).replace(/[^0-9]/g,''));
+  return isNaN(n) ? null : n;
+}
+function sizeBar(sqm) {
+  if(!sqm) return '';
+  const pct = Math.min(Math.round(sqm/MAX_SQM*100),100);
+  const fmt = sqm>=1000 ? (sqm/1000).toFixed(1)+'k sqm' : sqm+' sqm';
+  return `<div class="sc-size">
+    <div class="size-label">Mall size</div>
+    <div class="size-track"><div class="size-fill" style="width:${pct}%"></div></div>
+    <div class="size-text">${fmt}</div>
+  </div>`;
+}
 
-// ── Map colouring ─────────────────────────────────────────────────────────
+// ── MAP COLOURING ─────────────────────────────────────────────────────────
 function updateMapColors() {
-  const shapes = document.querySelectorAll('.rshape[data-country="'+currentCountry+'"]');
-  const allTotals = [...shapes].map(s => totalForRegion(currentCountry, s.getAttribute('data-region')));
-  const mx = Math.max(...allTotals, 1);
-  shapes.forEach(el => {
-    const t = Math.min(totalForRegion(currentCountry, el.getAttribute('data-region'))/mx, 1);
-    el.style.fill = `rgb(${Math.round(232-t*125)},${Math.round(223-t*160)},${Math.round(245-t*85)})`;
+  ['kenya','uganda'].forEach(country => {
+    const shapes = document.querySelectorAll(`.rshape[data-country="${country}"]`);
+    const totals = [...shapes].map(s=>totalForRegion(country, s.getAttribute('data-region')));
+    const mx = Math.max(...totals, 1);
+    shapes.forEach(el => {
+      const t = Math.min(totalForRegion(country, el.getAttribute('data-region'))/mx, 1);
+      el.style.fill = `rgb(${Math.round(232-t*125)},${Math.round(223-t*160)},${Math.round(245-t*85)})`;
+    });
   });
 }
 
-// ── Stats panel ───────────────────────────────────────────────────────────
-function updateStats() {
-  const data = STORES[currentCountry];
-  let fs=0,cs=0,ns=0,gl=0,oth=0,grn=0,yel=0,red=0;
-  for (const region of Object.values(data)) {
-    for (const [cat,malls] of Object.entries(region)) {
-      const list = malls||[];
-      if (cat==='Flagship') fs+=list.length;
-      else if (cat==='Classic') cs+=list.length;
-      else if (cat==='Neighbourhood') ns+=list.length;
-      list.forEach(m => {
-        if (classifyPharmacy(m.pharmacy)==='goodlife') gl++;
-        else oth++;
-        const s = (m.status||'').toLowerCase();
-        if (s==='green') grn++;
-        else if (s==='red') red++;
-        else yel++;
+// ── FORMAT TRACKER ────────────────────────────────────────────────────────
+function updateFormatTracker() {
+  // Count Goodlife formats across Kenya
+  const fmts = {'Goodlife Flagship':{F:0,C:0,N:0},'Goodlife Classic':{F:0,C:0,N:0},'Goodlife Neighbourhood':{F:0,C:0,N:0}};
+  const catMap = {'Flagship':'F','Classic':'C','Neighbourhood':'N'};
+  Object.values(STORES.kenya||{}).forEach(region => {
+    Object.entries(region).forEach(([cat, malls]) => {
+      (malls||[]).forEach(m => {
+        const fmt = (m.format||'');
+        const k = catMap[cat];
+        if(fmt.includes('Goodlife Flagship') && fmts['Goodlife Flagship']) fmts['Goodlife Flagship'][k]++;
+        else if(fmt.includes('Goodlife Classic') && fmts['Goodlife Classic']) fmts['Goodlife Classic'][k]++;
+        else if(fmt.includes('Goodlife Neighbourhood') && fmts['Goodlife Neighbourhood']) fmts['Goodlife Neighbourhood'][k]++;
       });
-    }
-  }
-  const total = fs+cs+ns;
-  document.getElementById('stats-row').innerHTML = `
-    <div class="scard flagship"><div class="stag">F</div><div class="slbl">Flagship Malls</div><div class="sval">${fs}</div><div class="ssub">premium locations</div></div>
-    <div class="scard classic"><div class="stag">C</div><div class="slbl">Classic Malls</div><div class="sval">${cs}</div><div class="ssub">secondary locations</div></div>
-    <div class="scard neighbourhood"><div class="stag">N</div><div class="slbl">Neighbourhood</div><div class="sval">${ns}</div><div class="ssub">community locations</div></div>
-    <div class="scard" style="border-color:#555"><div class="slbl">Total Mapped</div><div class="sval">${total}</div><div class="ssub">all categories</div></div>
-    <div class="scard green-card"><div class="slbl">🟢 Goodlife Present</div><div class="sval">${grn}</div><div class="ssub">${Math.round(grn/total*100)||0}% of malls</div></div>
-    <div class="scard yellow-card"><div class="slbl">🟡 Opportunity</div><div class="sval">${yel}</div><div class="ssub">shared or competitor</div></div>
-    <div class="scard red-card"><div class="slbl">🔴 Competitor</div><div class="sval">${red}</div><div class="ssub">no Goodlife presence</div></div>
-  `;
+    });
+  });
+  const cats = [{'id':'fl','key':'Goodlife Flagship'},{'id':'cl','key':'Goodlife Classic'},{'id':'nb','key':'Goodlife Neighbourhood'}];
+  const labels = [{'k':'F','l':'Flagship','color':'#6B3FA0'},{'k':'C','l':'Classic','color':'#9b6fd4'},{'k':'N','l':'N'hood','color':'#c9a8f0'}];
+  cats.forEach(({'id':id,'key':key}) => {
+    const el = document.getElementById(`fmt-${id}-bars`);
+    if(!el) return;
+    const data = fmts[key]||{};
+    el.innerHTML = labels.map(({'k':k,'l':l,'color':c}) => `
+      <div class="fmt-seg">
+        <div class="fmt-seg-bar" style="background:${c};width:${Math.max(24,(data[k]||0)*6)}px">${data[k]||0}</div>
+        <div class="fmt-label">${l}</div>
+      </div>`).join('');
+  });
 }
 
-// ── Country switch ────────────────────────────────────────────────────────
-function switchCountry(c, btn) {
-  currentCountry = c;
-  document.querySelectorAll('.ctab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.country-map').forEach(m=>m.classList.remove('active'));
-  document.getElementById(c==='kenya'?'ke-map':'ug-map').classList.add('active');
-  document.getElementById('maptitle').textContent = c==='kenya' ? '🗺 Kenya — 8 Provinces' : '🗺 Uganda — 4 Regions';
-  updateStats(); updateMapColors(); applyFilter();
+// ── STATS ─────────────────────────────────────────────────────────────────
+function updateStats() {
+  ['kenya','uganda'].forEach(country => {
+    const data = STORES[country]||{};
+    let fs=0,cs=0,ns=0,gl=0,oth=0,grn=0,yel=0,red=0;
+    Object.values(data).forEach(region => {
+      Object.entries(region).forEach(([cat,malls]) => {
+        const list=malls||[];
+        if(cat==='Flagship')fs+=list.length;
+        else if(cat==='Classic')cs+=list.length;
+        else if(cat==='Neighbourhood')ns+=list.length;
+        list.forEach(m=>{
+          if((m.pharmacy||'').toLowerCase().includes('goodlife'))gl++;else oth++;
+          const s=(m.status||'').toLowerCase();
+          if(s==='green')grn++;else if(s==='red')red++;else yel++;
+        });
+      });
+    });
+    const total=fs+cs+ns;
+    const flag = country==='kenya'?'🇰🇪':'🇺🇬';
+    const existing = document.getElementById(`stats-${country}`);
+    const html = `<div id="stats-${country}" style="display:flex;gap:8px;flex-wrap:wrap;flex:1;min-width:300px">
+      <div style="font-size:10px;font-weight:700;color:var(--gl);align-self:center;flex-shrink:0">${flag}</div>
+      <div class="scard fl"><div class="stag">F</div><div class="slbl">Flagship</div><div class="sval">${fs}</div></div>
+      <div class="scard cl"><div class="stag">C</div><div class="slbl">Classic</div><div class="sval">${cs}</div></div>
+      <div class="scard nb"><div class="stag">N</div><div class="slbl">N'hood</div><div class="sval">${ns}</div></div>
+      <div class="scard" style="border-top-color:#555"><div class="slbl">Total</div><div class="sval">${total}</div></div>
+      <div class="scard grn"><div class="slbl">🟢 Goodlife</div><div class="sval">${grn}</div><div class="ssub">${Math.round(grn/total*100)||0}%</div></div>
+      <div class="scard yel"><div class="slbl">🟡 Opportunity</div><div class="sval">${yel}</div></div>
+      <div class="scard red"><div class="slbl">🔴 Competitor</div><div class="sval">${red}</div></div>
+    </div>`;
+    if(existing) existing.outerHTML=html;
+    else document.getElementById('stats-row').insertAdjacentHTML('beforeend',html);
+  });
 }
 
-// ── Status filter ─────────────────────────────────────────────────────────
-function setFilter(f, btn) {
-  activeFilter = f;
+// ── STATUS FILTER ─────────────────────────────────────────────────────────
+function setFilter(f,btn) {
+  activeFilter=f;
   document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   applyFilter();
 }
-
 function applyFilter() {
-  // Dim regions that have no matching status malls
-  document.querySelectorAll('.rshape[data-country="'+currentCountry+'"]').forEach(el => {
-    const region = el.getAttribute('data-region');
-    const d = getRegionData(currentCountry, region);
-    if (activeFilter === 'All') {
-      el.classList.remove('filtered-out');
-    } else {
-      const all = [...(d.Flagship||[]),...(d.Classic||[]),...(d.Neighbourhood||[])];
-      const has = all.some(m => (m.status||'').toLowerCase() === activeFilter.toLowerCase());
-      el.classList.toggle('filtered-out', !has);
-    }
+  document.querySelectorAll('.rshape').forEach(el=>{
+    const country=el.getAttribute('data-country');
+    const region=el.getAttribute('data-region');
+    const d=getRegionData(country,region);
+    if(activeFilter==='All'){el.classList.remove('dimmed');return;}
+    const all=[...(d.Flagship||[]),...(d.Classic||[]),...(d.Neighbourhood||[])];
+    const has=all.some(m=>(m.status||'').toLowerCase()===activeFilter.toLowerCase());
+    el.classList.toggle('dimmed',!has);
   });
 }
 
-// ── Hover tooltip ─────────────────────────────────────────────────────────
-const htip = document.getElementById('htip');
-document.querySelectorAll('.rshape').forEach(el => {
-  el.addEventListener('mouseenter', e => {
-    const r = el.getAttribute('data-region');
-    const c = el.getAttribute('data-country');
-    const d = getRegionData(c, r);
-    document.getElementById('ht-title').textContent = r + (c==='kenya'?' Province':' Region');
-    document.getElementById('ht-fl').textContent = (d.Flagship||[]).length;
-    document.getElementById('ht-cl').textContent = (d.Classic||[]).length;
-    document.getElementById('ht-nb').textContent = (d.Neighbourhood||[]).length;
-    htip.style.display = 'block'; moveTip(e);
+// ── HOVER TIP ─────────────────────────────────────────────────────────────
+const htip=document.getElementById('htip');
+document.querySelectorAll('.rshape').forEach(el=>{
+  el.addEventListener('mouseenter',e=>{
+    const r=el.getAttribute('data-region'),c=el.getAttribute('data-country');
+    const d=getRegionData(c,r);
+    const all=[...(d.Flagship||[]),...(d.Classic||[]),...(d.Neighbourhood||[])];
+    const sizes=all.map(m=>parseSqm(m.size)).filter(Boolean);
+    const avgSize=sizes.length?Math.round(sizes.reduce((a,b)=>a+b,0)/sizes.length):null;
+    document.getElementById('ht-title').textContent=r+(c==='kenya'?' Province':' Region');
+    document.getElementById('ht-fl').textContent=(d.Flagship||[]).length;
+    document.getElementById('ht-cl').textContent=(d.Classic||[]).length;
+    document.getElementById('ht-nb').textContent=(d.Neighbourhood||[]).length;
+    document.getElementById('ht-size').textContent=avgSize?`Avg mall size: ${(avgSize/1000).toFixed(1)}k sqm`:'';
+    htip.style.display='block';moveTip(e);
   });
-  el.addEventListener('mousemove', moveTip);
-  el.addEventListener('mouseleave', () => htip.style.display='none');
-  el.addEventListener('click', () => {
-    const r = el.getAttribute('data-region');
-    const c = el.getAttribute('data-country');
-    if (!el.classList.contains('filtered-out')) openModal(c, r);
+  el.addEventListener('mousemove',moveTip);
+  el.addEventListener('mouseleave',()=>htip.style.display='none');
+  el.addEventListener('click',()=>{
+    if(!el.classList.contains('dimmed'))
+      openModal(el.getAttribute('data-country'),el.getAttribute('data-region'));
   });
 });
-function moveTip(e) {
+function moveTip(e){
   let l=e.clientX+14,t=e.clientY+14;
-  if(l+htip.offsetWidth>window.innerWidth-6) l=e.clientX-htip.offsetWidth-10;
-  if(t+htip.offsetHeight>window.innerHeight-6) t=e.clientY-htip.offsetHeight-10;
-  htip.style.left=l+'px'; htip.style.top=t+'px';
+  if(l+htip.offsetWidth>window.innerWidth-6)l=e.clientX-htip.offsetWidth-10;
+  if(t+htip.offsetHeight>window.innerHeight-6)t=e.clientY-htip.offsetHeight-10;
+  htip.style.left=l+'px';htip.style.top=t+'px';
 }
 
-// ── Modal drill-down ──────────────────────────────────────────────────────
-const modal = document.getElementById('modal');
-const mbody = document.getElementById('m-body');
-const mtitle = document.getElementById('m-title');
-document.getElementById('modal').addEventListener('click', e => { if(e.target===modal) closeModal(); });
-function closeModal() { modal.classList.remove('open'); }
+// ── MODAL ─────────────────────────────────────────────────────────────────
+const modal=document.getElementById('modal');
+const mbody=document.getElementById('m-body');
+const mtitle=document.getElementById('m-title');
+modal.addEventListener('click',e=>{if(e.target===modal)closeModal();});
+function closeModal(){modal.classList.remove('open');}
 
-function openModal(country, region) {
-  modalRegion = region;
-  const label = country==='kenya' ? region+' Province' : region+' Region';
-  mtitle.textContent = label;
-  showLevel1(country, region);
+function openModal(country,region){
+  mtitle.textContent=(country==='kenya'?region+' Province':region+' Region');
+  showLevel1(country,region);
   modal.classList.add('open');
 }
 
-function showLevel1(country, region) {
-  const d = getRegionData(country, region);
-  const fl=(d.Flagship||[]).length, cl=(d.Classic||[]).length, nb=(d.Neighbourhood||[]).length;
-  const total = fl+cl+nb;
-  mtitle.textContent = (country==='kenya'?region+' Province':region+' Region');
-  mbody.innerHTML = `
-    <p style="font-size:11px;color:#bbb;margin-bottom:14px">${total} mapped location${total!==1?'s':''} · Select a category to explore</p>
+function showLevel1(country,region){
+  const d=getRegionData(country,region);
+  const fl=(d.Flagship||[]).length,cl=(d.Classic||[]).length,nb=(d.Neighbourhood||[]).length;
+  const total=fl+cl+nb;
+  mtitle.textContent=(country==='kenya'?region+' Province':region+' Region');
+
+  // Area breakdown for Nairobi or large regions
+  const all=[...(d.Flagship||[]),...(d.Classic||[]),...(d.Neighbourhood||[])];
+  const areas={};
+  all.forEach(m=>{
+    const a=m.area||m.city||'Other';
+    if(!areas[a])areas[a]=0;areas[a]++;
+  });
+  const areaKeys=Object.keys(areas).sort((a,b)=>areas[b]-areas[a]);
+  const areaHTML=areaKeys.length>1?`
+    <div class="area-section">
+      <div class="area-title">📍 By Area / Neighbourhood</div>
+      <div class="area-grid">
+        ${areaKeys.map(a=>`
+          <div class="area-chip" onclick="showLevel2('${country}','${region}',null,'${a}')">
+            ${a}<span class="area-chip-count">${areas[a]}</span>
+          </div>`).join('')}
+      </div>
+    </div>`:'';
+
+  mbody.innerHTML=`
+    <p style="font-size:11px;color:#bbb;margin-bottom:12px">${total} mapped location${total!==1?'s':''} · Select a category or area</p>
     <div class="cat-cards">
-      <div class="ccard flagship" onclick="showLevel2('${country}','${region}','Flagship')">
-        <div class="ccard-icon">🏛</div>
-        <div class="ccard-name">Flagship</div>
-        <div class="ccard-count">${fl}</div>
-        <div class="ccard-sub">premium malls</div>
+      <div class="ccard fl" onclick="showLevel2('${country}','${region}','Flagship',null)">
+        <div class="ccard-icon">🏛</div><div class="ccard-name">Flagship</div>
+        <div class="ccard-count">${fl}</div><div class="ccard-sub">premium malls</div>
         <div class="chint">Click to explore →</div>
       </div>
-      <div class="ccard classic" onclick="showLevel2('${country}','${region}','Classic')">
-        <div class="ccard-icon">🏪</div>
-        <div class="ccard-name">Classic</div>
-        <div class="ccard-count">${cl}</div>
-        <div class="ccard-sub">secondary malls</div>
+      <div class="ccard cl" onclick="showLevel2('${country}','${region}','Classic',null)">
+        <div class="ccard-icon">🏪</div><div class="ccard-name">Classic</div>
+        <div class="ccard-count">${cl}</div><div class="ccard-sub">secondary malls</div>
         <div class="chint">Click to explore →</div>
       </div>
-      <div class="ccard neighbourhood" onclick="showLevel2('${country}','${region}','Neighbourhood')">
-        <div class="ccard-icon">🏘</div>
-        <div class="ccard-name">Neighbourhood</div>
-        <div class="ccard-count">${nb}</div>
-        <div class="ccard-sub">community malls</div>
+      <div class="ccard nb" onclick="showLevel2('${country}','${region}','Neighbourhood',null)">
+        <div class="ccard-icon">🏘</div><div class="ccard-name">Neighbourhood</div>
+        <div class="ccard-count">${nb}</div><div class="ccard-sub">community malls</div>
         <div class="chint">Click to explore →</div>
       </div>
     </div>
     ${total===0?'<p class="empty">No locations mapped for this region yet</p>':''}
+    ${areaHTML}
   `;
 }
 
-function showLevel2(country, region, cat) {
-  let malls = (getRegionData(country,region)[cat]||[]);
-  let activeStatus = 'All';
-  const label = country==='kenya'?region+' Province':region+' Region';
-  mtitle.textContent = label+' · '+cat;
+function showLevel2(country,region,cat,areaFilter){
+  const d=getRegionData(country,region);
+  let malls;
+  if(cat){
+    malls=d[cat]||[];
+  } else {
+    malls=[...(d.Flagship||[]),...(d.Classic||[]),...(d.Neighbourhood||[])].filter(m=>(m.area||m.city||'Other')===areaFilter);
+  }
+  const title=cat?`${cat} — ${country==='kenya'?region+' Province':region+' Region'}`:`${areaFilter} area`;
+  let activeStatus='All';
+  mtitle.textContent=title;
 
-  function render() {
-    const filtered = activeStatus==='All' ? malls :
-      malls.filter(m=>(m.status||'').toLowerCase()===activeStatus.toLowerCase());
+  function render(){
+    const filtered=activeStatus==='All'?malls:malls.filter(m=>(m.status||'').toLowerCase()===activeStatus.toLowerCase());
     const grn=malls.filter(m=>(m.status||'').toLowerCase()==='green').length;
     const yel=malls.filter(m=>(m.status||'').toLowerCase()==='yellow').length;
     const red=malls.filter(m=>(m.status||'').toLowerCase()==='red').length;
-
-    mbody.innerHTML = `
+    mbody.innerHTML=`
       <div class="l2hd">
         <button class="bbtn" onclick="showLevel1('${country}','${region}')">← Back</button>
-        <span class="l2title">${cat} malls in ${label} (${malls.length})</span>
+        <span class="l2title">${title} (${malls.length})</span>
       </div>
       <div class="spills">
-        <button class="spill all ${activeStatus==='All'?'active':''}" onclick="setMStatus('All',this)">All (${malls.length})</button>
-        ${grn?`<button class="spill green ${activeStatus==='Green'?'active':''}" onclick="setMStatus('Green',this)">🟢 Goodlife (${grn})</button>`:''}
-        ${yel?`<button class="spill yellow ${activeStatus==='Yellow'?'active':''}" onclick="setMStatus('Yellow',this)">🟡 Opportunity (${yel})</button>`:''}
-        ${red?`<button class="spill red ${activeStatus==='Red'?'active':''}" onclick="setMStatus('Red',this)">🔴 Competitor (${red})</button>`:''}
+        <button class="spill ${activeStatus==='All'?'active all':''}" onclick="setMS('All',this)">All (${malls.length})</button>
+        ${grn?`<button class="spill ${activeStatus==='Green'?'active grn':''}" onclick="setMS('Green',this)">🟢 Goodlife (${grn})</button>`:''}
+        ${yel?`<button class="spill ${activeStatus==='Yellow'?'active yel':''}" onclick="setMS('Yellow',this)">🟡 Opportunity (${yel})</button>`:''}
+        ${red?`<button class="spill ${activeStatus==='Red'?'active red':''}" onclick="setMS('Red',this)">🔴 Competitor (${red})</button>`:''}
       </div>
       <div class="slist">
         ${filtered.length===0?'<p class="empty">No locations match this filter</p>':
-          filtered.map(m => {
-            const sc = statusClass(m.status);
-            const area = m.area||m.city||'';
-            const pha = m.pharmacy||'—';
-            const fmt = m.format||'';
+          filtered.map(m=>{
+            const sc=statusCls(m.status);
+            const sqm=parseSqm(m.size);
+            const area=m.area||m.city||'';
             return `<div class="sc ${sc}-sc">
               <div class="sc-info">
                 <div class="sc-name">${m.mall}</div>
                 <div class="sc-meta">
-                  ${catBadge(cat)}
+                  ${cat?catBadge(cat):''}
                   <span class="badge ${sc}">${m.status||'—'}</span>
                   ${area?`<span>📍 ${area}</span>`:''}
-                  <span style="color:#bbb">${pha}</span>
+                  <span style="color:#bbb;font-size:9px">${m.pharmacy||'—'}</span>
                 </div>
-                ${fmt?`<div style="font-size:9px;color:#bbb;margin-top:2px">Format: ${fmt}</div>`:''}
+                ${m.format?`<div style="font-size:9px;color:#bbb;margin-top:2px">Format: ${m.format}</div>`:''}
+                ${sqm?sizeBar(sqm):''}
               </div>
               ${m.maps?`<a class="mapbtn" href="${m.maps}" target="_blank" rel="noopener">🗺 Maps</a>`:'<span class="mapbtn" style="background:#ccc;cursor:default">📍 No pin</span>'}
             </div>`;
           }).join('')
         }
-      </div>
-    `;
-    document.querySelectorAll('.spill').forEach(b=>b.addEventListener('click',()=>{}));
+      </div>`;
+    document.querySelectorAll('.spill').forEach(b=>b.addEventListener('click',function(){}));
   }
-
-  window.setMStatus = (s,btn) => {
-    activeStatus=s;
-    render();
-  };
+  window.setMS=(s,btn)=>{activeStatus=s;render();};
   render();
 }
 
-// ── File upload ───────────────────────────────────────────────────────────
-document.getElementById('file-input').addEventListener('change', function(e) {
-  const file = e.target.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    try {
-      const wb = XLSX.read(new Uint8Array(ev.target.result), {type:'array'});
-      const newStores = parseWorkbook(wb);
-      if (!newStores) { alert('Could not parse file. Ensure sheets are: Flagships, Classics, Neigbourhoods, Uganda'); return; }
-      STORES = newStores;
-      document.getElementById('fname').textContent = file.name;
-      document.getElementById('file-ok').className = 'file-ok show';
-      document.getElementById('hdate').textContent = 'Updated: '+new Date().toLocaleDateString('en-KE',{year:'numeric',month:'short',day:'numeric'});
-      updateStats(); updateMapColors(); applyFilter();
-    } catch(err) { alert('Error reading file: '+err.message); }
+// ── FILE UPLOAD ───────────────────────────────────────────────────────────
+document.getElementById('file-input').addEventListener('change',function(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'});
+      const ns=parseWorkbook(wb);
+      if(!ns){alert('Could not parse. Ensure sheets: Flagships, Classics, Neigbourhoods, Uganda');return;}
+      STORES=ns;
+      document.getElementById('fname').textContent=file.name;
+      document.getElementById('file-ok').className='file-ok show';
+      document.getElementById('hdate').textContent='Updated: '+new Date().toLocaleDateString('en-KE',{year:'numeric',month:'short',day:'numeric'});
+      updateStats();updateMapColors();updateFormatTracker();applyFilter();
+    }catch(err){alert('Error: '+err.message);}
   };
   reader.readAsArrayBuffer(file);
 });
 
-function parseWorkbook(wb) {
-  const sheetMap = {};
-  wb.SheetNames.forEach(n => sheetMap[n.toLowerCase().replace(/\s+/g,'')] = n);
-
-  function readSheet(key) {
-    const name = sheetMap[key] || wb.SheetNames.find(n=>n.toLowerCase().includes(key));
-    if(!name) return [];
-    return XLSX.utils.sheet_to_json(wb.Sheets[name]);
-  }
-
-  const flagships = readSheet('flagship');
-  const classics  = readSheet('classic');
-  const hoods     = readSheet('neigbourhood') || readSheet('neighbourhood');
-  const uganda    = readSheet('uganda');
-
-  if (!flagships.length && !classics.length) return null;
-
-  // Build structure
-  const result = { kenya:{}, uganda:{} };
-
-  function addKE(rows, cat) {
-    rows.forEach(row => {
-      const city = (row['County/City']||row['County']||row['City']||'').trim();
-      const province = C2P[city.toLowerCase()] || 'Nairobi';
-      if (!result.kenya[province]) result.kenya[province] = {Flagship:[],Classic:[],Neighbourhood:[]};
-      const entry = {
-        mall: row['Mall']||row['Mall Name']||'',
-        area: row['Market / Area']||row['Area']||city,
-        pharmacy: row['Pharmacy Chain']||row['Pharmacies']||row['Pharmacy Format']||'',
-        format: row['Pharmacy Format']||'',
-        status: row['Status']||'Yellow',
-        maps: row['Google Maps Link']||'',
-        size: row['Approx. Size (sqm)']||''
+function parseWorkbook(wb){
+  const sm={};wb.SheetNames.forEach(n=>sm[n.toLowerCase().replace(/\s+/g,'')]=n);
+  function rs(k){const n=sm[k]||wb.SheetNames.find(n=>n.toLowerCase().includes(k));return n?XLSX.utils.sheet_to_json(wb.Sheets[n]):[];}
+  const fs=rs('flagship'),cl=rs('classic'),nb=rs('neigbourhood')||rs('neighbourhood'),ug=rs('uganda');
+  if(!fs.length&&!cl.length)return null;
+  const res={kenya:{},uganda:{}};
+  function addKE(rows,cat){
+    rows.forEach(row=>{
+      const city=(row['County/City']||row['County']||row['City']||'').trim();
+      const prov=C2P[city.toLowerCase()]||'Nairobi';
+      if(!res.kenya[prov])res.kenya[prov]={Flagship:[],Classic:[],Neighbourhood:[]};
+      const e={
+        mall:row['Mall']||row['Mall Name']||'',
+        area:row['Market / Area']||row['Area']||city,
+        pharmacy:row['Pharmacy Chain']||row['Pharmacies']||'',
+        format:row['Pharmacy Format']||'',
+        status:row['Status']||'Yellow',
+        maps:row['Google Maps Link']||'',
+        size:row['Approx. Size (sqm)']||''
       };
-      if (entry.mall) result.kenya[province][cat].push(entry);
+      if(e.mall)res.kenya[prov][cat].push(e);
     });
   }
-
-  addKE(flagships,'Flagship');
-  addKE(classics,'Classic');
-  addKE(hoods,'Neighbourhood');
-
-  // Uganda
-  if (uganda.length) {
-    let ugSection = 'Flagship';
-    uganda.forEach(row => {
-      const tier = (row['Tier']||'').toLowerCase();
-      if (tier.includes('flagship')) ugSection='Flagship';
-      else if (tier.includes('classic')) ugSection='Classic';
-      else if (tier.includes('neighbour')) ugSection='Neighbourhood';
-      const city = (row['City']||row['Area']||'kampala').toLowerCase();
-      const region = C2R_UG[city] || 'Central';
-      if (!result.uganda[region]) result.uganda[region]={Flagship:[],Classic:[],Neighbourhood:[]};
-      const entry = {
-        mall: row['Mall Name']||row['Mall']||'',
-        area: row['Area']||'',
-        city: row['City']||'',
-        pharmacy: row['Pharmacy Partner']||row['Pharmacy Chain']||'',
-        format:'',
-        status: row['Status']||'Yellow',
-        maps: row['Google Maps Link']||''
-      };
-      if (entry.mall && entry.mall !== 'Mall Name') result.uganda[region][ugSection].push(entry);
+  addKE(fs,'Flagship');addKE(cl,'Classic');addKE(nb,'Neighbourhood');
+  if(ug.length){
+    let sec='Flagship';
+    ug.forEach(row=>{
+      const t=(row['Tier']||'').toLowerCase();
+      if(t.includes('flagship'))sec='Flagship';
+      else if(t.includes('classic'))sec='Classic';
+      else if(t.includes('neighbour'))sec='Neighbourhood';
+      const city=(row['City']||'kampala').toLowerCase();
+      const region=C2R_UG[city]||'Central';
+      if(!res.uganda[region])res.uganda[region]={Flagship:[],Classic:[],Neighbourhood:[]};
+      const e={mall:row['Mall Name']||row['Mall']||'',area:row['Area']||'',city:row['City']||'',pharmacy:row['Pharmacy Partner']||row['Pharmacy Chain']||'',format:'',status:row['Status']||'Yellow',maps:row['Google Maps Link']||''};
+      if(e.mall&&e.mall!=='Mall Name')res.uganda[region][sec].push(e);
     });
   }
-
-  return result;
+  return res;
 }
 
-// ── Download ──────────────────────────────────────────────────────────────
-function downloadReport() {
-  const storeJS = JSON.stringify(STORES);
-  let src = document.documentElement.outerHTML;
-  src = src.replace(/let STORES = \{[\s\S]*?\};(?=\s*\/\/ ── County)/, 'let STORES = '+storeJS+';');
-  const blob = new Blob([src], {type:'text/html'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'Goodlife_BD_Dashboard_'+new Date().toISOString().slice(0,10)+'.html';
-  a.click(); URL.revokeObjectURL(a.href);
+// ── DOWNLOAD HTML ─────────────────────────────────────────────────────────
+function downloadHTML(){
+  const storeJS=JSON.stringify(STORES);
+  let src=document.documentElement.outerHTML;
+  src=src.replace(/let STORES = \{[\s\S]*?\};(?=\s*let activeFilter)/,'let STORES = '+storeJS+';');
+  const blob=new Blob([src],{type:'text/html'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='Goodlife_BD_Dashboard_'+new Date().toISOString().slice(0,10)+'.html';
+  a.click();URL.revokeObjectURL(a.href);
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────
-document.getElementById('hdate').textContent = 'Updated: '+new Date().toLocaleDateString('en-KE',{year:'numeric',month:'short',day:'numeric'});
-updateStats(); updateMapColors(); applyFilter();
+// ── EXPORT PDF ────────────────────────────────────────────────────────────
+function exportPDF(){
+  const btn=event.target;btn.textContent='⏳ Generating...';btn.disabled=true;
+  const el=document.getElementById('printable');
+  html2canvas(el,{scale:1.5,useCORS:true,backgroundColor:'#f4f1fa'}).then(canvas=>{
+    const img=canvas.toDataURL('image/png');
+    const w=canvas.width,h=canvas.height;
+    const win=window.open('','_blank');
+    win.document.write(`<!DOCTYPE html><html><head><title>Goodlife BD Dashboard</title>
+      <style>*{margin:0;padding:0}body{background:#fff}img{width:100%;display:block}</style></head>
+      <body><img src="${img}"><script>window.onload=()=>window.print()<\/script></body></html>`);
+    win.document.close();
+    btn.textContent='📄 Export PDF';btn.disabled=false;
+  }).catch(()=>{btn.textContent='📄 Export PDF';btn.disabled=false;alert('PDF export failed. Try downloading the HTML instead.');});
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+document.getElementById('hdate').textContent='Updated: '+new Date().toLocaleDateString('en-KE',{year:'numeric',month:'short',day:'numeric'});
+updateStats();updateMapColors();updateFormatTracker();applyFilter();
 </script>
 </body>
 </html>
