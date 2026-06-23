@@ -509,37 +509,6 @@ function applyFilter() {
   });
 }
 
-// ── HOVER TIP ─────────────────────────────────────────────────────────────
-const htip=document.getElementById('htip');
-document.querySelectorAll('.rshape').forEach(el=>{
-  el.addEventListener('mouseenter',e=>{
-    const r=el.getAttribute('data-region'),c=el.getAttribute('data-country');
-    const d=getRegionData(c,r);
-    const all=[...(d.Flagship||[]),...(d.Classic||[]),...(d.Neighbourhood||[])];
-    const sizes=all.map(m=>parseSqm(m.size)).filter(Boolean);
-    const avgSize=sizes.length?Math.round(sizes.reduce((a,b)=>a+b,0)/sizes.length):null;
-    document.getElementById('ht-title').textContent=r+(c==='kenya'?' Province':' Region');
-    document.getElementById('ht-fl').textContent=(d.Flagship||[]).length;
-    document.getElementById('ht-cl').textContent=(d.Classic||[]).length;
-    document.getElementById('ht-nb').textContent=(d.Neighbourhood||[]).length;
-    document.getElementById('ht-size').textContent=avgSize?`Avg mall size: ${(avgSize/1000).toFixed(1)}k sqm`:'';
-    htip.style.display='block';moveTip(e);
-  });
-  el.addEventListener('mousemove',moveTip);
-  el.addEventListener('mouseleave',()=>htip.style.display='none');
-  el.addEventListener('click',()=>{
-    if(!el.classList.contains('dimmed'))
-      openModal(el.getAttribute('data-country'),el.getAttribute('data-region'));
-  });
-});
-function moveTip(e){
-  let l=e.clientX+14,t=e.clientY+14;
-  if(l+htip.offsetWidth>window.innerWidth-6)l=e.clientX-htip.offsetWidth-10;
-  if(t+htip.offsetHeight>window.innerHeight-6)t=e.clientY-htip.offsetHeight-10;
-  htip.style.left=l+'px';htip.style.top=t+'px';
-}
-
-// ── MODAL ─────────────────────────────────────────────────────────────────
 const modal=document.getElementById('modal');
 const mbody=document.getElementById('m-body');
 const mtitle=document.getElementById('m-title');
@@ -657,6 +626,38 @@ function showLevel2(country,region,cat,areaFilter){
   window.setMS=(s,btn)=>{activeStatus=s;render();};
   render();
 }
+
+// ── HOVER TIP ─────────────────────────────────────────────────────────────
+const htip=document.getElementById('htip');
+document.querySelectorAll('.rshape').forEach(el=>{
+  el.addEventListener('mouseenter',e=>{
+    const r=el.getAttribute('data-region'),c=el.getAttribute('data-country');
+    const d=getRegionData(c,r);
+    const all=[...(d.Flagship||[]),...(d.Classic||[]),...(d.Neighbourhood||[])];
+    const sizes=all.map(m=>parseSqm(m.size)).filter(Boolean);
+    const avgSize=sizes.length?Math.round(sizes.reduce((a,b)=>a+b,0)/sizes.length):null;
+    document.getElementById('ht-title').textContent=r+(c==='kenya'?' Province':' Region');
+    document.getElementById('ht-fl').textContent=(d.Flagship||[]).length;
+    document.getElementById('ht-cl').textContent=(d.Classic||[]).length;
+    document.getElementById('ht-nb').textContent=(d.Neighbourhood||[]).length;
+    document.getElementById('ht-size').textContent=avgSize?`Avg mall size: ${(avgSize/1000).toFixed(1)}k sqm`:'';
+    htip.style.display='block';moveTip(e);
+  });
+  el.addEventListener('mousemove',moveTip);
+  el.addEventListener('mouseleave',()=>htip.style.display='none');
+  el.addEventListener('click',()=>{
+    if(!el.classList.contains('dimmed'))
+      openModal(el.getAttribute('data-country'),el.getAttribute('data-region'));
+  });
+});
+function moveTip(e){
+  let l=e.clientX+14,t=e.clientY+14;
+  if(l+htip.offsetWidth>window.innerWidth-6)l=e.clientX-htip.offsetWidth-10;
+  if(t+htip.offsetHeight>window.innerHeight-6)t=e.clientY-htip.offsetHeight-10;
+  htip.style.left=l+'px';htip.style.top=t+'px';
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────
 
 // ── FILE UPLOAD ───────────────────────────────────────────────────────────
 document.getElementById('file-input').addEventListener('change',function(e){
