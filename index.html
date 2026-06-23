@@ -37,6 +37,7 @@ html,body{width:100%;overflow-x:hidden;font-family:'Segoe UI',Arial,sans-serif;b
 .file-ok{font-size:11px;color:var(--grn);font-weight:600;display:none}.file-ok.show{display:inline}
 .hint{font-size:10px;color:#bbb;background:#f9f6ff;border:1px solid var(--glm);border-radius:4px;padding:3px 9px}
 .hint b{color:var(--gl)}
+.abar-btns{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 #file-input{display:none}
 
 /* FORMAT TRACKER BANNER */
@@ -158,12 +159,44 @@ svg.cmap{width:100%;height:auto;display:block}
 .mapbtn:hover{background:var(--gl2)}
 .empty{text-align:center;color:#bbb;font-size:12px;padding:24px 0}
 
+/* ── RESPONSIVE ───────────────────────────────────────────────────────── */
 @media(max-width:900px){
   .maps-layout{grid-template-columns:1fr}
   .stats,.filters,.maps-layout,.fmt-banner{padding-left:14px;padding-right:14px}
   .header,.abar{padding-left:14px;padding-right:14px}
   .header{flex-direction:column;gap:8px}
   .cat-cards{grid-template-columns:1fr 1fr}
+}
+
+@media(max-width:600px){
+  .htitle h1{font-size:14px}
+  .hlogo img{height:24px}
+  .abar{flex-direction:column;align-items:stretch;gap:8px;padding:10px 12px}
+  .abar-btns{display:flex;gap:8px;flex-wrap:wrap}
+  .abtn{flex:1;justify-content:center;min-height:44px;font-size:13px;padding:10px 12px}
+  .hint{display:none}
+  .file-ok{font-size:12px}
+  .stats{padding:10px 12px 0;gap:8px}
+  .scard{min-width:calc(50% - 4px);padding:10px 12px}
+  .sval{font-size:17px}
+  .filters{padding:8px 12px 0;gap:6px}
+  .fbtn{min-height:36px;font-size:11px;padding:6px 14px}
+  .maps-layout{padding:10px 12px 20px;gap:12px}
+  .fmt-banner{padding:8px 12px;gap:10px;flex-wrap:wrap}
+  .fmt-banner-title{font-size:10px}
+  .fmt-divider{display:none}
+  .mdlg{max-height:95vh;border-radius:10px}
+  .mhd h2{font-size:13px}
+  .cat-cards{grid-template-columns:1fr 1fr;gap:8px}
+  .ccard-count{font-size:18px}
+  .sc-name{font-size:11px}
+  .mapbtn{font-size:11px;padding:7px 12px;min-height:36px}
+}
+
+@media(max-width:380px){
+  .cat-cards{grid-template-columns:1fr}
+  .scard{min-width:100%}
+  .abtn{font-size:12px}
 }
 </style>
 </head>
@@ -183,12 +216,14 @@ svg.cmap{width:100%;height:auto;display:block}
 
 <!-- ACTION BAR -->
 <div class="abar">
-  <span style="font-size:12px;font-weight:600;color:var(--gl)">📂 Data:</span>
-  <button class="abtn primary" onclick="document.getElementById('file-input').click()">↑ Upload Excel</button>
-  <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
-  <button class="abtn outline" onclick="downloadHTML()">↓ Download Report</button>
-  <button class="abtn danger" onclick="exportPDF()">📄 Export PDF</button>
-  <span class="file-ok" id="file-ok">✓ <span id="fname"></span></span>
+  <div class="abar-btns">
+    <span style="font-size:12px;font-weight:600;color:var(--gl);display:flex;align-items:center">📂 Data:</span>
+    <button class="abtn primary" onclick="document.getElementById('file-input').click()">↑ Upload Excel</button>
+    <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
+    <button class="abtn outline" onclick="downloadHTML()">↓ Download Report</button>
+    <button class="abtn danger" id="export-png-btn" onclick="exportPNG()">🖼 Export PNG</button>
+    <span class="file-ok" id="file-ok">✓ <span id="fname"></span></span>
+  </div>
   <span class="hint">Upload <b>Market_Share_Malls_v2.xlsx</b> · Sheets: <b>Flagships</b> · <b>Classics</b> · <b>Neigbourhoods</b> · <b>Uganda</b></span>
 </div>
 
@@ -730,20 +765,25 @@ function downloadHTML(){
   a.click();URL.revokeObjectURL(a.href);
 }
 
-// ── EXPORT PDF ────────────────────────────────────────────────────────────
-function exportPDF(){
-  const btn=event.target;btn.textContent='⏳ Generating...';btn.disabled=true;
+// ── EXPORT PNG ────────────────────────────────────────────────────────────
+function exportPNG(){
+  const btn=document.getElementById('export-png-btn');
+  btn.textContent='⏳ Generating...';btn.disabled=true;
   const el=document.getElementById('printable');
-  html2canvas(el,{scale:1.5,useCORS:true,backgroundColor:'#f4f1fa'}).then(canvas=>{
-    const img=canvas.toDataURL('image/png');
-    const w=canvas.width,h=canvas.height;
-    const win=window.open('','_blank');
-    win.document.write(`<!DOCTYPE html><html><head><title>Goodlife BD Dashboard</title>
-      <style>*{margin:0;padding:0}body{background:#fff}img{width:100%;display:block}</style></head>
-      <body><img src="${img}"><script>window.onload=()=>window.print()<\/script></body></html>`);
-    win.document.close();
-    btn.textContent='📄 Export PDF';btn.disabled=false;
-  }).catch(()=>{btn.textContent='📄 Export PDF';btn.disabled=false;alert('PDF export failed. Try downloading the HTML instead.');});
+  const dpr=Math.max(window.devicePixelRatio||1,2);
+  html2canvas(el,{scale:dpr,useCORS:true,backgroundColor:'#f4f1fa',logging:false}).then(canvas=>{
+    canvas.toBlob(blob=>{
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download='Goodlife_BD_Dashboard_'+new Date().toISOString().slice(0,10)+'.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      btn.textContent='🖼 Export PNG';btn.disabled=false;
+    },'image/png');
+  }).catch(()=>{btn.textContent='🖼 Export PNG';btn.disabled=false;alert('Export failed. Try downloading the HTML report instead.');});
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────
