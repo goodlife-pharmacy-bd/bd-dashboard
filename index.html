@@ -207,7 +207,7 @@ svg.cmap{width:100%;height:auto;display:block}
     <button class="abtn primary" onclick="document.getElementById('file-input').click()">↑ Upload Excel</button>
     <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
     <button class="abtn outline" onclick="downloadHTML()">↓ Download Report</button>
-    <button class="abtn danger" id="export-png-btn" onclick="exportPNG()">🖼 Export PNG</button>
+    <button class="abtn danger" id="export-png-btn" onclick="exportPNG()">📊 Export as Image</button>
   </div>
   <span class="file-ok" id="file-ok">✓ <span id="fname"></span></span>
   <span class="hint">Upload <b>Market_Share_Malls_v2.xlsx</b> · Sheets: <b>Flagships</b> · <b>Classics</b> · <b>Neigbourhoods</b> · <b>Uganda</b></span>
@@ -777,23 +777,239 @@ function downloadHTML(){
   a.click();URL.revokeObjectURL(a.href);
 }
 
-// ── EXPORT PNG ────────────────────────────────────────────────────────────
+// ── EXPORT AS IMAGE (BI REPORT) ───────────────────────────────────────────
 function exportPNG(){
   const btn=document.getElementById('export-png-btn');
-  btn.textContent='⏳ Generating...';btn.disabled=true;
-  const el=document.getElementById('printable');
-  const dpr=Math.max(window.devicePixelRatio||1,2);
-  html2canvas(el,{scale:dpr,useCORS:true,backgroundColor:'#f4f1fa',logging:false}).then(canvas=>{
-    canvas.toBlob(blob=>{
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      a.href=url;
-      a.download='Goodlife_BD_Dashboard_'+new Date().toISOString().slice(0,10)+'.png';
-      document.body.appendChild(a);a.click();document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      btn.textContent='🖼 Export PNG';btn.disabled=false;
-    },'image/png');
-  }).catch(()=>{btn.textContent='🖼 Export PNG';btn.disabled=false;alert('Export failed. Try downloading the HTML report instead.');});
+  btn.textContent='⏳ Building report...';btn.disabled=true;
+
+  // Build a self-contained report element off-screen
+  const report=buildReportElement();
+  report.style.position='fixed';
+  report.style.left='-9999px';
+  report.style.top='0';
+  document.body.appendChild(report);
+
+  // Give browser a frame to render fonts/layout before capture
+  requestAnimationFrame(()=>setTimeout(()=>{
+    html2canvas(report,{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false,
+      width:report.scrollWidth,height:report.scrollHeight,
+      windowWidth:report.scrollWidth,windowHeight:report.scrollHeight
+    }).then(canvas=>{
+      canvas.toBlob(blob=>{
+        document.body.removeChild(report);
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        a.href=url;
+        a.download='Goodlife_BD_Report_'+new Date().toISOString().slice(0,10)+'.png';
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        btn.textContent='📊 Export as Image';btn.disabled=false;
+      },'image/png');
+    }).catch(e=>{
+      document.body.removeChild(report);
+      btn.textContent='📊 Export as Image';btn.disabled=false;
+      alert('Export failed. Try the Download Report button instead.');
+    });
+  },120));
+}
+
+function buildReportElement(){
+  const date=new Date().toLocaleDateString('en-KE',{year:'numeric',month:'long',day:'numeric'});
+
+  // Compute stats for each country
+  function countryStats(country){
+    const data=STORES[country]||{};
+    let fl=0,cl=0,nb=0,grn=0,yel=0,red=0;
+    Object.values(data).forEach(r=>Object.entries(r).forEach(([cat,malls])=>{
+      const list=malls||[];
+      if(cat==='Flagship')fl+=list.length;
+      else if(cat==='Classic')cl+=list.length;
+      else cl+=0,nb+=cat==='Neighbourhood'?list.length:0;
+      list.forEach(m=>{
+        const s=(m.status||'').toLowerCase();
+        if(s==='green')grn++;else if(s==='red')red++;else yel++;
+      });
+    }));
+    // recount neighbourhood
+    nb=0;Object.values(data).forEach(r=>(r.Neighbourhood||[]).forEach(()=>nb++));
+    return {fl,cl,nb,total:fl+cl+nb,grn,yel,red};
+  }
+
+  // Region breakdown rows
+  function regionRows(country){
+    const data=STORES[country]||{};
+    return Object.entries(data).map(([region,cats])=>{
+      const fl=(cats.Flagship||[]).length,cl=(cats.Classic||[]).length,nb=(cats.Neighbourhood||[]).length;
+      const total=fl+cl+nb;
+      if(total===0)return '';
+      const all=[...(cats.Flagship||[]),...(cats.Classic||[]),...(cats.Neighbourhood||[])];
+      const grn=all.filter(m=>(m.status||'').toLowerCase()==='green').length;
+      const yel=all.filter(m=>(m.status||'').toLowerCase()==='yellow').length;
+      const red=all.filter(m=>(m.status||'').toLowerCase()==='red').length;
+      return `<div style="background:#fff;border:1px solid #e8e0f5;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-width:180px;flex:1">
+        <div style="font-size:12px;font-weight:700;color:#6B3FA0;border-bottom:2px solid #e8e0f5;padding-bottom:6px;margin-bottom:4px">${region}</div>
+        <div style="display:flex;gap:8px">
+          <div style="text-align:center;flex:1"><div style="font-size:18px;font-weight:800;color:#6B3FA0">${fl}</div><div style="font-size:9px;color:#9a82c0;text-transform:uppercase;letter-spacing:.5px">Flagship</div></div>
+          <div style="text-align:center;flex:1"><div style="font-size:18px;font-weight:800;color:#9b6fd4">${cl}</div><div style="font-size:9px;color:#9a82c0;text-transform:uppercase;letter-spacing:.5px">Classic</div></div>
+          <div style="text-align:center;flex:1"><div style="font-size:18px;font-weight:800;color:#c9a8f0">${nb}</div><div style="font-size:9px;color:#9a82c0;text-transform:uppercase;letter-spacing:.5px">N\'hood</div></div>
+        </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:2px">
+          ${grn?`<span style="background:#e8f8e8;color:#2E9E2E;border-radius:20px;font-size:9px;font-weight:700;padding:2px 8px">🟢 ${grn} Goodlife</span>`:''}
+          ${yel?`<span style="background:#fffbf0;color:#B87800;border-radius:20px;font-size:9px;font-weight:700;padding:2px 8px">🟡 ${yel} Opportunity</span>`:''}
+          ${red?`<span style="background:#fff4f4;color:#E02020;border-radius:20px;font-size:9px;font-weight:700;padding:2px 8px">🔴 ${red} Competitor</span>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Top opportunities (Red = competitor dominated, highest priority to enter)
+  function topOpps(limit=12){
+    const list=[];
+    ['kenya','uganda'].forEach(country=>{
+      Object.entries(STORES[country]||{}).forEach(([region,cats])=>{
+        Object.entries(cats).forEach(([cat,malls])=>{
+          (malls||[]).filter(m=>(m.status||'').toLowerCase()==='red').forEach(m=>{
+            list.push({mall:m.mall,region,country:country==='kenya'?'🇰🇪':'🇺🇬',cat,pharmacy:m.pharmacy||'Competitor'});
+          });
+        });
+      });
+    });
+    return list.slice(0,limit).map(l=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fff4f4;border-radius:7px;border-left:3px solid #E02020">
+        <span style="font-size:13px">🔴</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;font-weight:700;color:#2d1b5e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.country} ${l.mall}</div>
+          <div style="font-size:9px;color:#888">${l.region} · ${l.pharmacy}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  // Format mix bars
+  function fmtBar(country){
+    const data=STORES[country]||{};
+    const counts={Flagship:{F:0,C:0,N:0},Classic:{F:0,C:0,N:0},Neighbourhood:{F:0,C:0,N:0}};
+    Object.values(data).forEach(r=>Object.entries(r).forEach(([cat,malls])=>{
+      const k=cat==='Flagship'?'F':cat==='Classic'?'C':'N';
+      (malls||[]).forEach(m=>{
+        const fmt=m.format||'';
+        if(fmt.toLowerCase().includes('flagship'))counts.Flagship[k]++;
+        else if(fmt.toLowerCase().includes('classic'))counts.Classic[k]++;
+        else if(fmt.toLowerCase().includes('neighbourhood')||fmt.toLowerCase().includes('neighborhood'))counts.Neighbourhood[k]++;
+      });
+    }));
+    return ['Flagship','Classic','Neighbourhood'].map((name,i)=>{
+      const colors=['#6B3FA0','#9b6fd4','#c9a8f0'];
+      const keys=['F','C','N'];
+      const labels=['Flagship','Classic','N\'hood'];
+      return `<div style="margin-bottom:10px">
+        <div style="font-size:10px;font-weight:700;color:${colors[i]};margin-bottom:4px">Goodlife ${name}</div>
+        <div style="display:flex;gap:6px">
+          ${keys.map((k,j)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+            <div style="width:${Math.max(22,counts[name][k]*8)}px;height:18px;background:${colors[j]};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;min-width:22px">${counts[name][k]}</div>
+            <div style="font-size:8px;color:#888">${labels[j]}</div>
+          </div>`).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  const ke=countryStats('kenya'), ug=countryStats('uganda');
+  const logoSrc=document.getElementById('gllogo')?document.getElementById('gllogo').src:'';
+
+  const el=document.createElement('div');
+  el.style.cssText='width:1100px;font-family:Segoe UI,Arial,sans-serif;background:#f4f1fa;padding:0;box-sizing:border-box';
+  el.innerHTML=`
+  <!-- HEADER -->
+  <div style="background:linear-gradient(135deg,#6B3FA0,#3d1f70);color:#fff;padding:20px 32px;display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="background:#fff;border-radius:8px;padding:6px 14px">${logoSrc?`<img src="${logoSrc}" style="height:32px;display:block">`:''}</div>
+      <div>
+        <div style="font-size:20px;font-weight:800;letter-spacing:-.2px">BD Intelligence Report</div>
+        <div style="font-size:11px;opacity:.75;margin-top:3px">Pharmacy Mall Market Analysis · Kenya &amp; Uganda</div>
+      </div>
+    </div>
+    <div style="text-align:right;opacity:.8">
+      <div style="font-size:11px;font-weight:600">Generated ${date}</div>
+      <div style="font-size:10px;margin-top:2px">${ke.total + ug.total} locations mapped</div>
+    </div>
+  </div>
+
+  <!-- COUNTRY SUMMARIES -->
+  <div style="display:flex;gap:16px;padding:20px 24px 0">
+
+    <!-- KENYA -->
+    <div style="flex:1;background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 1px 6px rgba(107,63,160,.1)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;border-bottom:2px solid #f0ebff;padding-bottom:10px">
+        <span style="font-size:22px">🇰🇪</span>
+        <span style="font-size:15px;font-weight:800;color:#3d1f70">Kenya Overview</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:14px">
+        <div style="flex:1;text-align:center;padding:10px 6px;background:#f4f0ff;border-radius:8px"><div style="font-size:26px;font-weight:800;color:#6B3FA0">${ke.fl}</div><div style="font-size:9px;color:#9a82c0;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Flagship</div></div>
+        <div style="flex:1;text-align:center;padding:10px 6px;background:#f4f0ff;border-radius:8px"><div style="font-size:26px;font-weight:800;color:#9b6fd4">${ke.cl}</div><div style="font-size:9px;color:#9a82c0;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Classic</div></div>
+        <div style="flex:1;text-align:center;padding:10px 6px;background:#f4f0ff;border-radius:8px"><div style="font-size:26px;font-weight:800;color:#c9a8f0">${ke.nb}</div><div style="font-size:9px;color:#9a82c0;font-weight:700;text-transform:uppercase;letter-spacing:.5px">N'hood</div></div>
+        <div style="flex:1;text-align:center;padding:10px 6px;background:#2d1b5e;border-radius:8px"><div style="font-size:26px;font-weight:800;color:#fff">${ke.total}</div><div style="font-size:9px;color:#c9a8f0;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Total</div></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1;padding:8px;background:#f0fff0;border-radius:8px;text-align:center;border-top:3px solid #2E9E2E"><div style="font-size:20px;font-weight:800;color:#2E9E2E">${ke.grn}</div><div style="font-size:9px;color:#2E9E2E;font-weight:600">🟢 Goodlife</div><div style="font-size:9px;color:#888">${Math.round(ke.grn/ke.total*100)||0}% share</div></div>
+        <div style="flex:1;padding:8px;background:#fffbf0;border-radius:8px;text-align:center;border-top:3px solid #E8A000"><div style="font-size:20px;font-weight:800;color:#B87800">${ke.yel}</div><div style="font-size:9px;color:#B87800;font-weight:600">🟡 Opportunity</div><div style="font-size:9px;color:#888">${Math.round(ke.yel/ke.total*100)||0}% to target</div></div>
+        <div style="flex:1;padding:8px;background:#fff4f4;border-radius:8px;text-align:center;border-top:3px solid #E02020"><div style="font-size:20px;font-weight:800;color:#E02020">${ke.red}</div><div style="font-size:9px;color:#E02020;font-weight:600">🔴 Competitor</div><div style="font-size:9px;color:#888">${Math.round(ke.red/ke.total*100)||0}% held</div></div>
+      </div>
+    </div>
+
+    <!-- UGANDA -->
+    <div style="flex:1;background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 1px 6px rgba(107,63,160,.1)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;border-bottom:2px solid #f0ebff;padding-bottom:10px">
+        <span style="font-size:22px">🇺🇬</span>
+        <span style="font-size:15px;font-weight:800;color:#3d1f70">Uganda Overview</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:14px">
+        <div style="flex:1;text-align:center;padding:10px 6px;background:#f4f0ff;border-radius:8px"><div style="font-size:26px;font-weight:800;color:#6B3FA0">${ug.fl}</div><div style="font-size:9px;color:#9a82c0;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Flagship</div></div>
+        <div style="flex:1;text-align:center;padding:10px 6px;background:#f4f0ff;border-radius:8px"><div style="font-size:26px;font-weight:800;color:#9b6fd4">${ug.cl}</div><div style="font-size:9px;color:#9a82c0;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Classic</div></div>
+        <div style="flex:1;text-align:center;padding:10px 6px;background:#f4f0ff;border-radius:8px"><div style="font-size:26px;font-weight:800;color:#c9a8f0">${ug.nb}</div><div style="font-size:9px;color:#9a82c0;font-weight:700;text-transform:uppercase;letter-spacing:.5px">N'hood</div></div>
+        <div style="flex:1;text-align:center;padding:10px 6px;background:#2d1b5e;border-radius:8px"><div style="font-size:26px;font-weight:800;color:#fff">${ug.total}</div><div style="font-size:9px;color:#c9a8f0;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Total</div></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1;padding:8px;background:#f0fff0;border-radius:8px;text-align:center;border-top:3px solid #2E9E2E"><div style="font-size:20px;font-weight:800;color:#2E9E2E">${ug.grn}</div><div style="font-size:9px;color:#2E9E2E;font-weight:600">🟢 Goodlife</div><div style="font-size:9px;color:#888">${Math.round(ug.grn/Math.max(ug.total,1)*100)||0}% share</div></div>
+        <div style="flex:1;padding:8px;background:#fffbf0;border-radius:8px;text-align:center;border-top:3px solid #E8A000"><div style="font-size:20px;font-weight:800;color:#B87800">${ug.yel}</div><div style="font-size:9px;color:#B87800;font-weight:600">🟡 Opportunity</div><div style="font-size:9px;color:#888">${Math.round(ug.yel/Math.max(ug.total,1)*100)||0}% to target</div></div>
+        <div style="flex:1;padding:8px;background:#fff4f4;border-radius:8px;text-align:center;border-top:3px solid #E02020"><div style="font-size:20px;font-weight:800;color:#E02020">${ug.red}</div><div style="font-size:9px;color:#E02020;font-weight:600">🔴 Competitor</div><div style="font-size:9px;color:#888">${Math.round(ug.red/Math.max(ug.total,1)*100)||0}% held</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KENYA REGIONAL BREAKDOWN -->
+  <div style="padding:18px 24px 0">
+    <div style="font-size:12px;font-weight:800;color:#6B3FA0;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">🇰🇪 Kenya — Regional Breakdown</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">${regionRows('kenya')}</div>
+  </div>
+
+  <!-- UGANDA REGIONAL BREAKDOWN -->
+  <div style="padding:14px 24px 0">
+    <div style="font-size:12px;font-weight:800;color:#6B3FA0;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">🇺🇬 Uganda — Regional Breakdown</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">${regionRows('uganda')}</div>
+  </div>
+
+  <!-- BOTTOM ROW: FORMAT MIX + OPPORTUNITIES -->
+  <div style="display:flex;gap:16px;padding:16px 24px 24px">
+
+    <!-- FORMAT MIX -->
+    <div style="background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 1px 6px rgba(107,63,160,.1);min-width:220px">
+      <div style="font-size:12px;font-weight:800;color:#6B3FA0;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Format Mix (Kenya)</div>
+      ${fmtBar('kenya')}
+    </div>
+
+    <!-- TOP COMPETITOR MALLS = PRIORITY TARGETS -->
+    <div style="flex:1;background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 1px 6px rgba(107,63,160,.1)">
+      <div style="font-size:12px;font-weight:800;color:#E02020;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">🎯 Priority Expansion Targets — Competitor-Held Malls</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">${topOpps(12)}</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="background:#2d1b5e;color:rgba(255,255,255,.5);font-size:9px;text-align:center;padding:10px 24px">
+    Goodlife Pharmacy · BD Intelligence Dashboard · Confidential · ${date}
+  </div>
+  `;
+  return el;
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────
